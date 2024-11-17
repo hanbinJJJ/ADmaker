@@ -3,10 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask App</title>
+    <title>광고 생성 시스템</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        img {
+            display: block;
+            margin-top: 10px;
+            max-width: 100%;
+            height: auto;
+        }
+        .ad-list {
+            margin-top: 20px;
+        }
+        .ad-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello, Flask!</h1>
-    <p>Welcome to my Flask application.</p>
+    <h1>광고 생성 시스템</h1>
+    <div>
+        <h2>광고 요구 입력</h2>
+        <input type="text" id="userInput" placeholder="광고 요구를 입력하세요">
+        <button type="button" onclick="generateAd()">광고 생성</button>
+        <p id="adText"></p>
+        <img id="adImage" src="" alt="Generated Ad" style="display: none;">
+    </div>
+
+    <div id="modificationPrompt" style="margin-top: 20px;">
+        <h2>광고 수정</h2>
+        <button type="button" onclick="modifyAd()">다른 이미지를 원해요</button>
+        <button type="button" onclick="downloadAd()">마음에 들어요</button>
+        <button type="button" onclick="requestModification()">추가적인 요구가 있어요</button>
+    </div>
+
+    <script>
+        // 광고 생성 함수
+        function generateAd() {
+            const userInput = document.getElementById('userInput').value.trim();
+            if (!userInput) {
+                alert('광고 요구를 입력해주세요.');
+                return;
+            }
+
+            fetch('/generate_ad', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_input: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('adText').innerText = data.ad_text;
+                const adImage = document.getElementById('adImage');
+                adImage.src = data.image_url;
+                adImage.onload = () => {
+                    adImage.style.display = 'block';
+                };
+                adImage.onerror = () => {
+                    adImage.style.display = 'none'; // 이미지 로드 실패 시 숨기기
+                    alert('이미지 로드 실패');
+                };
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('광고 생성에 실패했습니다.');
+            });
+        }
+
+        // 광고 수정 함수
+        function modifyAd() {
+            const userInput = document.getElementById('userInput').value.trim();
+            if (!userInput) {
+                alert('광고 요구를 입력해주세요.');
+                return;
+            }
+
+            fetch('/modify_ad', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_input: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('adText').innerText = data.ad_text;
+                const adImage = document.getElementById('adImage');
+                adImage.src = data.image_url;
+                adImage.onload = () => {
+                    adImage.style.display = 'block';
+                };
+                adImage.onerror = () => {
+                    adImage.style.display = 'none'; // 이미지 로드 실패 시 숨기기
+                    alert('이미지 로드 실패');
+                };
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('광고 수정에 실패했습니다.');
+            });
+        }
+
+        // 광고 다운로드 함수
+        function downloadAd() {
+            const imageUrl = document.getElementById('adImage').src;
+            const a = document.createElement('a');
+            a.href = imageUrl;
+            a.download = "generated_ad.png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // 추가 요구 사항 반영 함수
+        function requestModification() {
+            const userRequirements = prompt("추가적인 요구 사항을 입력하세요:");
+            if (userRequirements && userRequirements.trim() !== "") {
+                fetch('/add_requirements', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_requirements: userRequirements })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('adText').innerText = data.ad_text;
+                    document.getElementById('adImage').src = data.image_url;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('추가 요구 사항 반영에 실패했습니다.');
+                });
+            } else {
+                alert('요구 사항을 입력해 주세요.');
+            }
+        }
+    </script>
 </body>
 </html>
