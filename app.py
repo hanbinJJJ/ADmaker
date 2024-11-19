@@ -51,8 +51,34 @@ def generate_ad_text(user_input):
         return "광고 문구 생성 중 오류가 발생했습니다."
 
 @app.route('/')
-def index():
+def main():
+    return render_template('main.html')
+
+@app.route('/create')
+def create():
     return render_template('index.html')
+
+@app.route('/api/ads')
+def get_ads():
+    try:
+        # static/images 디렉토리의 경로
+        images_dir = os.path.join('static', 'images')
+        
+        # 이미지 파일 목록 가져오기 (.png 파일만)
+        image_files = [f for f in os.listdir(images_dir) if f.endswith('.png')]
+        
+        # 이미지 URL 리스트 생성
+        ads = [
+            {
+                'image_url': f'/static/images/{image_file}'
+            }
+            for image_file in image_files
+        ]
+        
+        return jsonify(ads)
+    except Exception as e:
+        print("Error fetching ads:", e)
+        return jsonify({'error': 'Failed to fetch ads'}), 500
 
 # 광고 생성 라우트 (POST)
 @app.route('/generate_ad', methods=['POST'])
