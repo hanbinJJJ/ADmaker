@@ -1,0 +1,44 @@
+[
+  {
+    "id": "594c58ff-1caf-4db3-8824-96a72ad2dee8",
+    "content": "123123",
+    "nickname": "123",
+    "parent_id": "d990cf51-65ba-41de-ac9a-6cbbe6f5adcb",
+    "created_at": "2024-11-22T00:27:13.402180"
+  },
+  {
+    "id": "886f99f2-ef7e-44f5-8eb8-dff84222fecf",
+    "content": "123123",
+    "nickname": "ㅂㅈㄷ",
+    "parent_id": "d990cf51-65ba-41de-ac9a-6cbbe6f5adcb",
+    "created_at": "2024-11-22T00:27:22.385338"
+  },
+  {
+    "id": "af57b50c-2da3-485e-b0df-10505ca53499",
+    "content": "123",
+    "nickname": "123",
+    "parent_id": "d990cf51-65ba-41de-ac9a-6cbbe6f5adcb",
+    "created_at": "2024-11-22T00:28:33.106044"
+  },
+  {
+    "id": "00f2d414-5929-43d1-a776-8df96ae04cdc",
+    "nickname": "123",
+    "comment": "123",
+    "parent_id": "d990cf51-65ba-41de-ac9a-6cbbe6f5adcb",
+    "created_at": "2024-11-22 00:29:31"
+  },
+  {
+    "id": "7e435fbb-92dc-45de-ba71-5a32898a853c",
+    "nickname": "123123",
+    "comment": "123123123123",
+    "parent_id": "d990cf51-65ba-41de-ac9a-6cbbe6f5adcb",
+    "created_at": "2024-11-22 00:29:39"
+  },
+  {
+    "id": "31ad5cbf-9330-4176-8dfe-2b2bbcd2891d",
+    "content": "ㅂㅈㄷㅂㅈㄷ",
+    "nickname": "123",
+    "parent_id": "e327c521-619b-4e5f-bc42-ee286aa86614",
+    "created_at": "2024-11-22T00:39:29.410034"
+  }
+]
