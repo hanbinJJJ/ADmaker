@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMAKER - 갤러리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% include 'includes/styles.html' %}
+    <style>
+        .gallery-section {
+            padding: calc(var(--nav-height) + 2rem) 0 4rem;
+            background: #fafafa;
+            min-height: 100vh;
+        }
+
+        .gallery-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* 갤러리 히어로 섹션 */
+        .gallery-hero {
+            background: #ffffff;
+            padding: calc(var(--nav-height) + 4rem) 0 4rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .gallery-hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .gallery-hero h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: #2D3436;
+            margin-bottom: 1.2rem;
+            line-height: 1.3;
+        }
+
+        .gallery-hero h1 span {
+            background: linear-gradient(135deg, #00C4CC 0%, #7928CA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gallery-hero p {
+            font-size: 1.15rem;
+            color: #64748b;
+            line-height: 1.7;
+            margin-bottom: 0;
+        }
+
+        /* 필터 섹션 업데이트 */
+        .filter-section {
+            position: sticky;
+            top: var(--nav-height);
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 0;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .filter-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .filter-left {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* 필터 버튼 스타일 업데이트 */
+        .filter-btn {
+            padding: 0.7rem 1.4rem;
+            border: none;
+            background: #f8fafc;
+            color: #64748b;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .filter-btn i {
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            background: #f1f5f9;
+            color: #334155;
+            transform: translateY(-1px);
+        }
+
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,196,204,0.2);
+        }
+
+        .filter-btn.active:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(0,196,204,0.25);
+        }
+
+        /* 검색 컨테이너 업데이트 */
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.7rem 1.2rem;
+            padding-left: 3rem;
+            border: 2px solid #f1f5f9;
+            border-radius: 12px;
+            background: #ffffff;
+            font-size: 0.95rem;
+            color: #334155;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0,196,204,0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1rem;
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        .search-input:focus + .search-icon {
+            color: var(--primary-color);
+        }
+
+        /* 갤러리 그리드 */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            padding: 1rem 0;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: white;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            aspect-ratio: 1;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent);
+            padding: 2rem 1.5rem 1.5rem;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        .gallery-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .gallery-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 0.8rem;
+        }
+
+        .gallery-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .gallery-meta i {
+            font-size: 1rem;
+        }
+
+        .gallery-date {
+            margin-top: 0.8rem;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        @media (max-width: 1200px) {
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .gallery-hero {
+                padding: calc(var(--nav-height) + 3rem) 0 3rem;
+            }
+
+            .gallery-hero h1 {
+                font-size: 2.4rem;
+            }
+
+            .gallery-hero p {
+                font-size: 1rem;
+                padding: 0 1rem;
+            }
+
+            .filter-container {
+                flex-direction: column;
+                padding: 0 1rem;
+                gap: 1rem;
+            }
+
+            .filter-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .filter-btn {
+                flex: 1;
+                min-width: auto;
+                padding: 0.6rem 1rem;
+            }
+
+            .search-container {
+                width: 100%;
+                max-width: none;
+            }
+        }
+
+        /* 갤러리 헤더 스��� */
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 0 1rem;
+        }
+
+        .gallery-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2D3436;
+            margin-bottom: 1rem;
+        }
+
+        .gallery-header p {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* 컨테이너 크기 조정 */
+        .gallery-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* 필터 섹션 위치 조정 */
+        .filter-section {
+            margin-bottom: 3rem;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <section class="gallery-hero">
+        <div class="gallery-hero-content">
+            <h1>AI가 만든 <span>특별한 광고</span>를<br>만나보세요</h1>
+            <p>ADMAKER의 크리에이티브 갤러리에서 영감을 얻으세요</p>
+        </div>
+    </section>
+
+    <section class="filter-section">
+        <div class="filter-container">
+            <div class="filter-left">
+                <button class="filter-btn active" onclick="sortImages('latest', this)" data-sort="latest">
+                    최신순 <i class="fas fa-sort-down"></i>
+                </button>
+                <button class="filter-btn" onclick="sortImages('views', this)" data-sort="views">
+                    조회순 <i class="fas fa-sort-down"></i>
+                </button>
+                <button class="filter-btn" onclick="sortImages('likes', this)" data-sort="likes">
+                    인기순 <i class="fas fa-sort-down"></i>
+                </button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="광고 제목 검색...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+    </section>
+
+    <section class="gallery-section">
+        <div class="gallery-container">
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- 이미지들이 여기에 동적으로 로드됩니다 -->
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let galleryImages = [];
+        let currentSort = { field: 'latest', ascending: false };
+
+        // 이미지 로드
+        function loadImages() {
+            fetch('/api/gallery-images')
+                .then(response => response.json())
+                .then(data => {
+                    galleryImages = data;
+                    renderImages(galleryImages);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // 정렬 함수 수정
+        function sortImages(sortBy, button) {
+            // 모든 버튼의 active 상태 제거
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 클릭된 버튼 active 상태로 변경
+            button.classList.add('active');
+
+            // 같은 필드로 정렬할 경우 방향 전환
+            if (currentSort.field === sortBy) {
+                currentSort.ascending = !currentSort.ascending;
+            } else {
+                currentSort.field = sortBy;
+                currentSort.ascending = false;
+            }
+
+            // 화살 방향 업데이트
+            updateButtonArrow(button, currentSort.ascending);
+
+            // 이미지 정렬
+            const sortedImages = [...galleryImages].sort((a, b) => {
+                let comparison = 0;
+                switch(sortBy) {
+                    case 'latest':
+                        comparison = new Date(b.created_at) - new Date(a.created_at);
+                        break;
+                    case 'views':
+                        comparison = b.views - a.views;
+                        break;
+                    case 'likes':
+                        comparison = b.likes - a.likes;
+                        break;
+                }
+                return currentSort.ascending ? -comparison : comparison;
+            });
+
+            renderImages(sortedImages);
+        }
+
+        // 화살표 업데이트 함수 수정
+        function updateButtonArrow(button, isAscending) {
+            const arrow = button.querySelector('i');
+            if (isAscending) {
+                arrow.className = 'fas fa-sort-up';
+            } else {
+                arrow.className = 'fas fa-sort-down';
+            }
+        }
+
+        // 이미지 렌더링
+        function renderImages(images) {
+            const galleryGrid = document.querySelector('.gallery-grid');
+            if (images.length === 0) {
+                galleryGrid.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-image mb-3" style="font-size: 2rem; color: #ccc;"></i>
+                        <p>표시할 이미지가 없습니다.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            galleryGrid.innerHTML = images.map(image => `
+                <a href="/gallery/${encodeURIComponent(image.filename)}" class="gallery-item">
+                    <img src="${image.url}" alt="${image.title}" class="gallery-image">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">${image.title}</h3>
+                        <div class="gallery-meta">
+                            <span><i class="far fa-eye"></i> ${image.views}</span>
+                            <span><i class="far fa-heart"></i> ${image.likes}</span>
+                        </div>
+                        <div class="gallery-date">${image.created_at}</div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadImages();
+
+            // 검색 기능
+            const searchInput = document.getElementById('searchInput');
+            let debounceTimer;
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    const query = this.value.toLowerCase().trim();
+                    const filteredImages = galleryImages.filter(image => 
+                        image.title.toLowerCase().includes(query)
+                    );
+                    renderImages(filteredImages);
+                }, 300);
+            });
+
+            // 페이지 로드 시 좋아요 상태 확인
+            const imageId = '{{ image_id }}';
+            const likeKey = `liked_${imageId}`;
+            
+            if (localStorage.getItem(likeKey)) {
+                const likeButton = document.querySelector('.like-button');
+                const likeIcon = document.getElementById('likeIcon');
+                
+                likeButton.classList.add('liked');
+                likeIcon.classList.remove('far');
+                likeIcon.classList.add('fas');
+            }
+        });
+
+        // toggleLike 함수를 다음과 같이 수정합니다
+        function toggleLike() {
+            const imageId = '{{ image_id }}';
+            const likeKey = `liked_${imageId}`;
+            
+            // 이미 좋아요를 눌렀는지 확인
+            if (localStorage.getItem(likeKey)) {
+                alert('이미 좋아요를 누르셨습니다.');
+                return;
+            }
+
+            const likeButton = document.querySelector('.like-button');
+            const likeIcon = document.getElementById('likeIcon');
+            const likeCount = document.getElementById('likeCount');
+
+            fetch(`/api/like/${imageId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('좋아요 처리에 실패했습니다.');
+                    return;
+                }
+
+                // 좋아요 상태 저장
+                localStorage.setItem(likeKey, 'true');
+
+                // UI 업데이트
+                likeButton.classList.add('liked');
+                likeIcon.classList.remove('far');
+                likeIcon.classList.add('fas');
+                likeCount.textContent = data.likes;
+
+                // 애니메이션 효과
+                likeIcon.style.transform = 'scale(1.3)';
+                setTimeout(() => {
+                    likeIcon.style.transform = 'scale(1)';
+                }, 200);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('좋아요 처리에 실패했습니다.');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -6,11 +6,12 @@
     <title>ADMAKER - AI 광고 제작 플랫폼</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css">
+    {% include 'includes/styles.html' %}
     <style>
         :root {
-            --primary-color: #00C4CC;
-            --secondary-color: #2D3436;
-            --background-color: #F5F5F5;
+            --gradient-primary: linear-gradient(135deg, #00C4CC 0%, #7928CA 100%);
+            --gradient-secondary: linear-gradient(135deg, #FF0080 0%, #7928CA 100%);
+            --gradient-text: linear-gradient(135deg, #00C4CC 0%, #7928CA 50%, #FF0080 100%);
         }
 
         body {
@@ -19,69 +20,104 @@
             padding: 0;
         }
 
-        /* 네비게이션 바 스타일 */
-        .navbar {
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 1rem 2rem;
-        }
-
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        .nav-link {
-            color: var(--secondary-color);
-            font-weight: 500;
-            margin: 0 1rem;
-            transition: color 0.3s ease;
-        }
-
-        .nav-link:hover {
-            color: var(--primary-color);
-        }
-
         /* 메인 슬라이더 영역 */
         .main-slider {
-            padding: 2rem 0;
+            padding: 3rem 0 5rem;
             background-color: var(--background-color);
         }
 
         .swiper {
             width: 100%;
-            height: 500px;
-            padding: 50px;
+            height: 600px;
+            padding: 60px;
         }
 
         .swiper-slide {
-            width: 300px;  /* 고정 너비 설정 */
-            height: 400px;
+            width: 400px;
+            height: 500px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
         }
 
         .swiper-slide img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 15px;
         }
 
         .swiper-slide-active {
             transform: scale(1.2);
             z-index: 2;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
         }
 
         .swiper-slide-prev,
         .swiper-slide-next {
             transform: scale(0.8);
+            opacity: 0.6;
+        }
+
+        /* 로딩 상태 표시 */
+        .swiper-wrapper:empty::after {
+            content: '이미지를 불러오는 중...';
+            display: block;
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .swiper-button-next,
+        .swiper-button-prev {
+            background: rgba(255, 255, 255, 0.9);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .swiper-button-next:after,
+        .swiper-button-prev:after {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2D3436;
+        }
+
+        .swiper-button-next:hover,
+        .swiper-button-prev:hover {
+            background: var(--gradient-primary);
+        }
+
+        .swiper-button-next:hover:after,
+        .swiper-button-prev:hover:after {
+            color: white;
+        }
+
+        .swiper-pagination {
+            bottom: -30px !important;
+        }
+
+        .swiper-pagination-bullet {
+            width: 30px;
+            height: 4px;
+            border-radius: 2px;
+            background: #ddd;
             opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .swiper-pagination-bullet-active {
+            width: 50px;
+            background: var(--gradient-primary);
+            opacity: 1;
         }
 
         /* 섹션 타이틀 */
@@ -99,6 +135,597 @@
         .section-title p {
             color: #666;
             font-size: 1.1rem;
+        }
+
+        /* 히어로 섹션 */
+        .hero-section {
+            min-height: 85vh;
+            background: linear-gradient(135deg, rgba(0, 196, 204, 0.9) 0%, rgba(121, 40, 202, 0.9) 100%);
+            position: relative;
+            perspective: 1000px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+
+        .hero-content h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-content p {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.2s;
+            animation-fill-mode: both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            animation: fadeInUp 1s ease-out 0.4s;
+            animation-fill-mode: both;
+        }
+
+        .hero-buttons .btn {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero-buttons .btn-primary {
+            background: #ffffff;
+            color: #7928CA;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .hero-buttons .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4);
+            background: #ffffff;
+            color: #00C4CC;
+        }
+
+        .hero-buttons .btn-outline {
+            background: transparent;
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .hero-buttons .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ffffff;
+            transform: translateY(-3px);
+        }
+
+        /* 이용 방법 섹션 스타일 */
+        .how-to-use {
+            padding: 6rem 0;
+            background: #f8fafc;
+        }
+
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step-item {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .step-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .step-title {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+        .step-description {
+            color: #666;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        /* 특별한 기능 섹션 */
+        .features {
+            padding: 8rem 0;
+            background: white;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .feature-card {
+            position: relative;
+            padding: 3rem 2rem;
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 196, 204, 0.1);
+            border-color: transparent;
+        }
+
+        .feature-number {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            background: rgba(0, 196, 204, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+        }
+
+        .feature-content h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #2D3436;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .feature-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .feature-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .feature-card {
+                padding: 2.5rem 1.5rem;
+            }
+
+            .feature-number {
+                top: 1rem;
+                right: 1rem;
+            }
+        }
+
+        /* 통계 섹션 스타일 */
+        .stats-section {
+            padding: 3rem 0;
+            background: linear-gradient(135deg, rgba(0, 196, 204, 0.97) 0%, rgba(121, 40, 202, 0.97) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" fill="rgba(255,255,255,0.05)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            padding: 0 2rem;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 1rem 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .stat-box::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:last-child::after {
+            display: none;
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        /* 큰 화면 */
+        @media (min-width: 1200px) {
+            .stats-container {
+                padding: 2rem 4rem;
+            }
+            
+            .stat-number {
+                font-size: 4rem;
+            }
+        }
+
+        /* 태블릿 */
+        @media (max-width: 992px) {
+            .stat-number {
+                font-size: 3rem;
+            }
+            
+            .stat-box {
+                padding: 1rem;
+            }
+        }
+
+        /* 작은 태블릿 */
+        @media (max-width: 768px) {
+            .stats-container {
+                flex-direction: column;
+                gap: 2.5rem;
+                padding: 2rem 1rem;
+            }
+
+            .stat-box {
+                width: 100%;
+                padding: 1.5rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .stat-box:last-child {
+                border-bottom: none;
+            }
+
+            .stat-box::after {
+                display: none;
+            }
+
+            .stat-number {
+                font-size: 2.8rem;
+            }
+        }
+
+        /* 모바일 */
+        @media (max-width: 480px) {
+            .stats-section {
+                padding: 2rem 0;
+            }
+
+            .stat-box {
+                padding: 1rem;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* 호버 효과 (데스크톱에서만) */
+        @media (hover: hover) {
+            .stat-box:hover {
+                transform: translateY(-5px);
+            }
+
+            .stat-box:hover .stat-number {
+                text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        /* AI 기술 섹션 */
+        .ai-tech {
+            padding: 8rem 0;
+            background: white;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .tech-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tech-card img {
+            height: 80px;
+            margin-bottom: 2rem;
+        }
+
+        /* 애니메이션 */
+        @keyframes gridMove {
+            0% { transform: rotateX(45deg) translateY(0); }
+            100% { transform: rotateX(45deg) translateY(-50%); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-content p {
+                font-size: 1.2rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+            }
+            
+            .btn-hero {
+                width: 100%;
+            }
+            
+            .feature-grid,
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-slider {
+                padding: 4rem 0;
+            }
+            
+            .main-slider .section-title {
+                font-size: 2rem;
+            }
+            
+            .swiper-slide img {
+                height: 300px;
+            }
+            
+            .hero-section {
+                min-height: 70vh;
+            }
+        }
+
+        /* 부드러운 전환을 위한 추가 스타일 */
+        .swiper-slide {
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 활성 슬라이드 호버 효과 유지 */
+        .swiper-slide-active:hover .ad-image {
+            transform: scale(1.05);
+        }
+
+        /* 슬라이드 정보 표시 개선 */
+        .slide-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: white;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .swiper-slide-active .slide-info {
+            transform: translateY(0);
+        }
+
+        /* 공통 스타일 */
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 196, 204, 0.1);
+            color: var(--primary-color);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #00C4CC 0%, #7928CA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-title p {
+            color: #666;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 공통 트랜지션 효과 */
+        .nav-link,
+        .hero-buttons .btn,
+        .step-item,
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+
+        /* 공통 그라데이션 경 */
+        .hero-section,
+        .step-number,
+        .counter {
+            background: linear-gradient(135deg, #00C4CC 0%, #7928CA 100%);
+        }
+
+        /* 반응형 조정 */
+        @media (max-width: 1200px) {
+            .swiper-slide {
+                width: 350px;
+                height: 450px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .swiper {
+                height: 500px;
+                padding: 40px;
+            }
+
+            .swiper-slide {
+                width: 300px;
+                height: 400px;
+            }
+
+            .swiper-slide-active {
+                transform: scale(1.15);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .swiper {
+                height: 400px;
+                padding: 30px;
+            }
+
+            .swiper-slide {
+                width: 250px;
+                height: 330px;
+            }
+
+            .swiper-slide-active {
+                transform: scale(1.1);
+            }
         }
     </style>
 </head>
@@ -132,34 +759,145 @@
         </div>
     </nav>
 
-    <!-- 메인 슬라이더 섹션 -->
-    <section class="main-slider">
-        <div class="section-title">
-            <h2>최근 제작된 광고</h2>
-            <p>다른 사용자들이 만든 멋진 광고들을 구경해보세요</p>
-        </div>
-        <div class="swiper">
-            <div class="swiper-wrapper">
-                <!-- 슬라이더 아이템들은 서버에서 동적으로 생성 -->
+    <!-- 히어로 션 (최상단) -->
+    <section class="hero-section">
+        <div id="particles-js"></div>
+        <div class="hero-content">
+            <h1>AI 기술로 만드는<br>맞춤형 광고</h1>
+            <p>텍스트만으로 광고 이미지를 제작하세요<br>AI가 당신의 아이어를 현실로 만들어드립니다</p>
+            <div class="hero-buttons">
+                <a href="/create" class="btn btn-primary">시작하기</a>
+                <a href="#how-to-use" class="btn btn-outline">사용 방법</a>
             </div>
-            <div class="swiper-pagination"></div>
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <!-- 슬라이더 섹션 (히어로 다음으로 이동) -->
+    <section class="main-slider">
+        <div class="container">
+            <div class="section-title">
+                <h2>최근 제작된 광고</h2>
+                <p>AI가 만들어낸 의적인 광고들을 구경해보세요</p>
+            </div>
+            <div class="swiper main-swiper">
+                <div class="swiper-wrapper">
+                    <!-- 슬라이드 내용은 JavaScript로 동적 생성됨 -->
+                </div>
+                <div class="swiper-pagination"></div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 이용 방법 섹션 -->
+    <section class="how-to-use" id="how-to-use">
+        <div class="container">
+            <div class="section-title">
+                <h2>사용 방법</h2>
+                <p>간단한 4단계로 나만의 광고를 만들어보세요</p>
+            </div>
+            <div class="steps-container">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">광고 내용 입력</h3>
+                    <p class="step-description">원하는 광고의 내용과 스타일을 자세히 설명해주세요.</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">AI 이미지 생성</h3>
+                    <p class="step-description">AI가 설명에 맞는 최적의 광고 이지를 생성합니다.</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">수정 및 보완</h3>
+                    <p class="step-description">생성된 이미지를 원하는 대로 수정하고 보완할 수 있습니다.</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <h3 class="step-title">최종 결과물 저장</h3>
+                    <p class="step-description">만족스러운 결과물을 다운로드하여 사용하세요.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 특별한 기능 섹션 -->
+    <section class="features">
+        <div class="container">
+            <div class="section-title">
+                <span class="badge">FEATURES</span>
+                <h2>ADMAKER의 특별한 기능</h2>
+                <p>최신 AI 기술로 구현된 강력한 기능들을 경험해보세요</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-number">01</span>
+                    <div class="feature-content">
+                        <h3>고성능 AI 엔진</h3>
+                        <ul class="feature-list">
+                            <li>최신 생성형 AI 기술 적용</li>
+                            <li>고품질 이미지 생성</li>
+                            <li>다양한 해상도 지원</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-number">02</span>
+                    <div class="feature-content">
+                        <h3>스타일 프리셋</h3>
+                        <ul class="feature-list">
+                            <li>20+ 스타일 템플릿</li>
+                            <li>업별 최적화 프리셋</li>
+                            <li>커스텀 스타일 저장</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-number">03</span>
+                    <div class="feature-content">
+                        <h3>빠른 반복 생성</h3>
+                        <ul class="feature-list">
+                            <li>실시간 이미지 생성</li>
+                            <li>무제한 변형 생성</li>
+                            <li>히스토리 관리</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-number" id="imageCount">0</div>
+                <div class="stat-label">생성된 광고</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="totalVisitors">0</div>
+                <div class="stat-label">총 방문자 수</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="todayVisitors">0</div>
+                <div class="stat-label">오늘의 방문자</div>
+            </div>
         </div>
     </section>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // 슬라이더 초기화
-        const swiper = new Swiper('.swiper', {
+        // Swiper 초기화
+        const swiper = new Swiper('.main-swiper', {
             slidesPerView: 3,  // 한 번에 보여줄 슬라이드 수
             spaceBetween: 30,  // 슬라이드 사이 간격
             centeredSlides: true,
             loop: true,
             loopedSlides: 3,  // 루프에 사용할 슬라이드 수
             loopAdditionalSlides: 1,  // 추가 슬라이드 수
-            loopFillGroupWithBlank: true,  // 그룹을 채우기 위한 빈 슬라이드 추가
+            loopFillGroupWithBlank: true,  // 그룹을 채기 위한 빈 슬라이드 추가
             autoplay: {
                 delay: 3000,
                 disableOnInteraction: false,
@@ -183,17 +921,14 @@
                 slideShadows: true,
             },
             breakpoints: {
-                // 모바일
                 320: {
                     slidesPerView: 1,
                     spaceBetween: 10
                 },
-                // 태블릿
                 768: {
                     slidesPerView: 2,
                     spaceBetween: 20
                 },
-                // 데스크톱
                 1024: {
                     slidesPerView: 3,
                     spaceBetween: 30
@@ -232,8 +967,127 @@
                 });
         }
 
-        // 페이지 로드 시 이미지 로드
+        // 페이지 로드 시 실행
         document.addEventListener('DOMContentLoaded', loadAdImages);
+
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80 },
+                color: { value: '#ffffff' },
+                opacity: { value: 0.5 },
+                size: { value: 3 },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#ffffff',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2
+                }
+            }
+        });
+
+        // 이미지 수 가져오기
+        async function getImageCount() {
+            try {
+                const response = await fetch('/api/image-count');
+                const data = await response.json();
+                return data.count;
+            } catch (error) {
+                console.error('Error fetching image count:', error);
+                return 0;
+            }
+        }
+
+        // 방문자 수 가져오기
+        async function getUserCount() {
+            try {
+                const response = await fetch('/api/user-count');
+                const data = await response.json();
+                return {
+                    total: data.total,
+                    today: data.today
+                };
+            } catch (error) {
+                console.error('Error fetching user count:', error);
+                return { total: 0, today: 0 };
+            }
+        }
+
+        // 통계 업데이트 및 애니이션
+        async function updateStats() {
+            const imageCount = await getImageCount();
+            const visitorCounts = await getUserCount();
+
+            animateCounter(document.getElementById('imageCount'), imageCount);
+            animateCounter(document.getElementById('totalVisitors'), visitorCounts.total);
+            animateCounter(document.getElementById('todayVisitors'), visitorCounts.today);
+        }
+
+        // 페이지 로드 시 통계 업데이트
+        document.addEventListener('DOMContentLoaded', updateStats);
+
+        // 5분마다 통계 업데이트
+        setInterval(updateStats, 300000);
+
+        // 숫자 애니메이션 함수
+        function animateCounter(element, target) {
+            let current = 0;
+            const increment = target / 100;
+            const duration = 2000; // 2초
+            const interval = duration / 100;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current).toLocaleString();
+            }, interval);
+        }
+
+        // 관리자 접근을 위한 키 시퀀스 감지
+        const adminSequence = ['ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', '1'];
+        let currentSequence = [];
+        let sequenceTimer;
+
+        document.addEventListener('keydown', function(e) {
+            // 입력 필드에서는 시퀀스를 감지하지 않음
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            clearTimeout(sequenceTimer);
+            currentSequence.push(e.key);
+
+            // 시퀀스가 너무 길어지면 리셋
+            if (currentSequence.length > adminSequence.length) {
+                currentSequence = [e.key];
+            }
+
+            // 2초 후 시퀀스 리셋
+            sequenceTimer = setTimeout(() => {
+                currentSequence = [];
+            }, 2000);
+
+            // 시퀀스 확인
+            if (currentSequence.join(',') === adminSequence.join(',')) {
+                // 관리자 인증
+                const password = prompt('관리자 비밀번호를 입력하세요:');
+                console.log('입력된 비밀번호:', password); // 디버깅용
+                
+                if (password && password.trim() === '123') {  // null 체크 추가 및 공백 제거
+                    window.location.href = '/admin';
+                } else {
+                    alert('잘못된 비밀번호입니다.');
+                }
+                currentSequence = [];
+            }
+        });
     </script>
 </body>
 </html>

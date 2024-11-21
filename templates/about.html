@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMAKER - 사이트 소개</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% include 'includes/styles.html' %}
+    <style>
+        :root {
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-2: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
+            --shadow-1: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+            --shadow-2: 0 20px 40px -5px rgba(0, 0, 0, 0.15);
+        }
+
+        .about-section {
+            padding: 6rem 0;
+            background: #f8fafc;
+        }
+
+        .project-box {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-1);
+            transition: all 0.3s ease;
+        }
+
+        .project-box:hover {
+            box-shadow: var(--shadow-2);
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-1);
+            border-radius: 2px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .feature-item {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-1);
+            border-color: #6366f1;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .feature-icon i {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-description {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .benefit-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: var(--shadow-1);
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-2);
+            border-color: #8b5cf6;
+        }
+
+        .benefit-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .benefit-icon i {
+            color: white;
+            font-size: 1.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .about-section {
+                padding: 4rem 0;
+            }
+
+            .project-box {
+                padding: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+
+        .col-lg-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 0 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+        }
+
+        @media (max-width: 992px) {
+            .col-lg-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <section class="about-section">
+        <div class="container">
+            <div class="project-box">
+                <h2 class="section-title">사이트 개요</h2>
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <h3 class="feature-title">목적 및 필요성</h3>
+                            <ul class="feature-list">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    광고 제작에 필요한 시간과 비용 절감
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    비전문가도 쉽게 사용할 수 있는 광고 제작 도구
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    사용자 맞춤형 광고를 통해 고객의 다양한 요구 반영
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h3 class="feature-title">주요 기능과 기술</h3>
+                            <ul class="feature-list">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    텍스트 및 이미지 기반 광고 생성
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    사용자 요청에 따른 반복 수정 기능
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    유사 광고 제시 기능
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    GPT-4, DALL-E 기반 기술 사용
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h4 class="feature-title">효율적인 광고 제작</h4>
+                    </div>
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4 class="feature-title">고객 참여 증대</h4>
+                    </div>
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h4 class="feature-title">창의적인 광고 생산</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="project-box">
+                <h2 class="section-title">서비스 목표</h2>
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-magic"></i>
+                            </div>
+                            <h3 class="feature-title">광고 생성</h3>
+                            <p class="feature-description">
+                                AI를 활용해 사용자의 요구에 따른 맞춤형 광고를 자동으로 생성하며,
+                                원하는 이미지를 추가하여 이와 유사한 광고 생성이 가능합니다.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <h3 class="feature-title">광고 리터칭</h3>
+                            <p class="feature-description">
+                                사용자의 작업물을 AI를 통해 스타일, 색상, 내용 등을 조정하여
+                                원하는 결과물을 얻을 수 있습니다.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <h3 class="feature-title">광고 수정</h3>
+                            <p class="feature-description">
+                                광고 수정 요청에 따라 3개의 이미지를 생성하고, 사용자의 선택에 따라
+                                여러 번의 수정 요청을 순차적으로 반영합니다.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h3 class="feature-title">유사 광고 제시</h3>
+                            <p class="feature-description">
+                                유사 광고 추천 및 검색 기능을 제공하며, 이전 사용자의 광고와
+                                중복되지 않는 독창적인 결과물을 보장합니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="project-box">
+                <h2 class="section-title">향후 추가 예정 서비스</h2>
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-film"></i>
+                            </div>
+                            <h3 class="feature-title">영상 광고 생성</h3>
+                            <p class="feature-description">
+                                AI 기술을 활용한 맞춤형 영상 광고 제작 서비스를 제공합니다. 
+                                스토리보드 작성부터 영상 편집까지 원스톱 솔루션을 구현할 예정입니다.
+                            </p>
+                            <ul class="feature-list mt-3">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    자동 장면 전환 및 효과 적용
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    AI 기반 음성 나레이션 생성
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-images"></i>
+                            </div>
+                            <h3 class="feature-title">GIF 광고 생성</h3>
+                            <p class="feature-description">
+                                움직이는 이미지를 활용한 다이나믹한 GIF 광고 제작 기능을 제공합니다.
+                                SNS 및 웹사이트에 최적화된 포맷으로 제작됩니다.
+                            </p>
+                            <ul class="feature-list mt-3">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    다양한 애니메이션 효과 제공
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    최적화된 파일 크기 조정
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h3 class="feature-title">광고 대본 생성</h3>
+                            <p class="feature-description">
+                                AI가 브랜드의 특성과 목표를 반영한 맞춤형 광고 대본을 작성합니다.
+                                다양한 매체에 적합한 형식으로 제공됩니다.
+                            </p>
+                            <ul class="feature-list mt-3">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    매체별 최적화된 대본 포맷
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    타겟 고객층 맞춤 문구 제안
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="feature-title">광고 성과 분석</h3>
+                            <p class="feature-description">
+                                생성된 광고의 예상 효과를 AI로 분석하고, 개선점을 제안하는
+                                종합적인 분석 리포트를 제공합니다.
+                            </p>
+                            <ul class="feature-list mt-3">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    타겟 도달률 예측
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    실시간 트렌드 분석 반영
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
