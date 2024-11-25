@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>광고 대본 생성 시스템</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00C4CC;
+            --secondary-color: #2D3436;
+            --background-color: #F5F5F5;
+            --font-gothic: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .workspace {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 468px;
+            background: linear-gradient(to bottom, #ffffff, #f8fafc);
+            border-right: 1px solid rgba(0, 196, 204, 0.1);
+            padding: 28px;
+            overflow-y: auto;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .main-content {
+            flex: 1;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 40px;
+            overflow: auto;
+        }
+
+        .script-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .generate-button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .generate-button:hover {
+            background-color: #00b3b9;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .script-result {
+            white-space: pre-line;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="workspace">
+        <div class="sidebar">
+            <h4 class="mb-4">광고 대본 생성</h4>
+            
+            <div class="mb-4">
+                <label class="form-label">제품/서비스 설명</label>
+                <textarea 
+                    id="productDescription" 
+                    class="form-control" 
+                    rows="5" 
+                    placeholder="광고할 제품이나 서비스에 대해 자세히 설명해주세요."
+                ></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">타겟 고객층</label>
+                <input 
+                    type="text" 
+                    id="targetAudience" 
+                    class="form-control" 
+                    placeholder="예: 20-30대 직장인 여성"
+                >
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">광고 톤앤매너</label>
+                <select id="scriptTone" class="form-select">
+                    <option value="emotional">감성적인</option>
+                    <option value="humorous">유머러스한</option>
+                    <option value="professional">전문적인</option>
+                    <option value="friendly">친근한</option>
+                    <option value="dramatic">드라마틱한</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">광고 길이</label>
+                <select id="scriptLength" class="form-select">
+                    <option value="15">15초</option>
+                    <option value="30">30초</option>
+                    <option value="60">60초</option>
+                </select>
+            </div>
+
+            <button class="generate-button" onclick="generateScript()">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                대본 생성하기
+            </button>
+        </div>
+
+        <div class="main-content">
+            <div id="scriptResult" class="script-container" style="display: none;">
+                <h5 class="mb-4">생성된 대본</h5>
+                <div class="script-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function generateScript() {
+            const description = document.getElementById('productDescription').value;
+            const audience = document.getElementById('targetAudience').value;
+            const tone = document.getElementById('scriptTone').value;
+            const length = document.getElementById('scriptLength').value;
+
+            if (!description || !audience) {
+                alert('제품 설명과 타겟 고객층을 입력해주세요.');
+                return;
+            }
+
+            const resultContainer = document.getElementById('scriptResult');
+            resultContainer.style.display = 'block';
+            resultContainer.innerHTML = `
+                <div class="text-center">
+                    <div class="loading-spinner"></div>
+                    <p>대본 생성 중...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/generate_script', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        description: description,
+                        audience: audience,
+                        tone: tone,
+                        length: length
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API 요청 실패');
+                }
+
+                const data = await response.json();
+                resultContainer.innerHTML = `
+                    <h5 class="mb-4">생성된 대본</h5>
+                    <div class="script-result">${data.script}</div>
+                `;
+
+            } catch (error) {
+                resultContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        대본 생성 중 오류가 발생했습니다. 다시 시도해주세요.
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html> 

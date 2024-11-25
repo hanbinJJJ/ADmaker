@@ -6,6 +6,10 @@ from dotenv import load_dotenv  # .env 파일에서 환경 변수 로드
 from datetime import datetime
 import json
 import uuid
+import re
+import base64
+from io import BytesIO
+from PIL import Image
 
 # .env 파일에서 환경 변수 로드
 load_dotenv()
@@ -455,6 +459,174 @@ def delete_comment(image_id, comment_id):
     except Exception as e:
         print(f"Error deleting comment: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/generate_background', methods=['POST'])
+def generate_background():
+    try:
+        data = request.get_json()
+        base_prompt = data.get('prompt', '').strip()
+        width = int(data.get('width', 1024))
+        height = int(data.get('height', 1024))
+        style = data.get('style', '')
+        color_mood = data.get('colorMood', '')
+        image_mood = data.get('imageMood', '')
+        complexity = data.get('complexity', '')
+        layout = data.get('layout', '')
+
+        # DALL-E 3가 지원하는 크기 선택
+        if width/height > 1:  # 가로가 더 긴 경우
+            dalle_size = "1024x1024"  # 임시로 정사각형 사용
+        else:  # 세로가 더 길거나 같은 경우
+            dalle_size = "1024x1024"
+            
+        # 프롬프트 조합
+        prompt = f"""Create a professional advertisement background image with the following specifications:
+        Main description: {base_prompt}
+        Style: {style}
+        Color theme: {color_mood}
+        Mood: {image_mood}
+        Complexity: {complexity}
+        Layout: {layout}
+        
+        The image should be:
+        - Clean and high-quality
+        - Suitable for text overlay
+        - Professional and modern looking
+        - Well-balanced composition
+        - Maintain visual hierarchy
+        """
+
+        # DALL-E API 호출
+        response = openai.Image.create(
+            prompt=prompt,
+            n=1,
+            size="1024x1024",  # 고정된 크기 사용
+            quality="standard",
+            response_format="url"
+        )
+        
+        image_url = response['data'][0]['url']
+        
+        # 이미지 저장
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        image_filename = f"bg_{timestamp}.png"
+        image_path = os.path.join('static', 'images', image_filename)
+        
+        # 이미지 다운로드 및 저장
+        img_response = requests.get(image_url)
+        if img_response.status_code == 200:
+            with open(image_path, 'wb') as f:
+                f.write(img_response.content)
+        
+        return jsonify({
+            'image_url': f'/static/images/{image_filename}'
+        })
+        
+    except Exception as e:
+        print(f"Error in generate_background: {str(e)}")
+        return jsonify({
+            'error': 'Failed to generate image'
+        }), 500
+
+# 수정사항을 반영한 이미지 생성 라우트 추가
+@app.route('/generate_variations', methods=['POST'])
+def generate_variations():
+    try:
+        # static/images 폴더의 테스트 이미지 사용
+        test_images = [
+            '/static/images/test1.jpg',
+            '/static/images/test2.jpg',
+            '/static/images/test3.jpg'
+        ]
+        
+        return jsonify({
+            'variations': test_images
+        })
+
+    except Exception as e:
+        print(f"Error in generate_variations: {str(e)}")
+        return jsonify({
+            'error': 'Failed to generate image variations'
+        }), 500
+
+@app.route('/generate_ad_copy', methods=['POST'])
+def generate_ad_copy():
+    try:
+        data = request.get_json()
+        prompt = data.get('prompt', '')
+        tone = data.get('tone', 'casual')
+        
+        # 톤에 따른 프롬프트 조정
+        tone_descriptions = {
+            'casual': '친근하고 편안한 톤으로',
+            'professional': '전문적이고 신뢰감 있는 톤으로',
+            'witty': '재치있고 유머러스한 톤으로',
+            'emotional': '감성적��고 공감되는 톤으로',
+            'direct': '간단명료하고 직관적인 톤으로'
+        }
+        
+        # GPT 프롬프트 구성
+        system_prompt = f"""당신은 전문 광고 카피라이터입니다. 
+다음 제품/서비스에 대해 {tone_descriptions[tone]} 3개의 광고 문구를 생성해주세요.
+- 각 문구는 20자 내외로 간결하게 작성
+- 핵심 가치와 장점을 부각
+- 기억하기 쉽고 임팩트 있게"""
+
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=200
+        )
+
+        # 응답 텍스트를 줄바꿈으로 분리하여 리스트로 변환
+        ad_copies = response.choices[0].message['content'].strip().split('\n')
+        # 빈 문자열 제거 및 번호/기호 등 제거
+        ad_copies = [re.sub(r'^[\d\s\.\-]+', '', copy.strip()) for copy in ad_copies if copy.strip()]
+        
+        return jsonify({
+            'copies': ad_copies[:3]  # 최대 3개의 문구만 반환
+        })
+
+    except Exception as e:
+        print("Error generating ad copy:", e)
+        return jsonify({
+            'error': 'Failed to generate ad copy'
+        }), 500
+
+@app.route('/save_ad', methods=['POST'])
+def save_ad():
+    try:
+        data = request.get_json()
+        title = data.get('title')
+        image_data = data.get('imageData')
+
+        # 파일명 생성 (공백은 언더스코어로 변경)
+        filename = f"{title.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+        
+        # base64 이미지 데이터 처리
+        image_data = image_data.split(',')[1]
+        image_bytes = base64.b64decode(image_data)
+        
+        # 이미지 저장
+        image_path = os.path.join('static', 'images', filename)
+        with open(image_path, 'wb') as f:
+            f.write(image_bytes)
+
+        return jsonify({
+            'success': True,
+            'image_url': f'/static/images/{filename}'
+        })
+
+    except Exception as e:
+        print(f"Error saving ad: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to save ad'
+        }), 500
 
 if __name__ == '__main__':
     # static/images 폴더가 없다면 생성

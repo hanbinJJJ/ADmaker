@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>광고 생성 시스템</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- 웹 폰트 추가 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-color: #00C4CC;
             --secondary-color: #2D3436;
             --background-color: #F5F5F5;
+            --font-gothic: 'Noto Sans KR', sans-serif;
+            --font-nanumgothic: 'Nanum Gothic', sans-serif;
+            --font-nanummyeongjo: 'Nanum Myeongjo', serif;
         }
 
         body {
@@ -26,32 +34,37 @@
 
         /* 왼쪽 사이드바 스타일 */
         .sidebar {
-            width: 300px;
-            background-color: white;
-            border-right: 1px solid #e0e0e0;
-            padding: 20px;
+            width: 468px;
+            background: linear-gradient(to bottom, #ffffff, #f8fafc);
+            border-right: 1px solid rgba(0, 196, 204, 0.1);
+            padding: 28px;
             overflow-y: auto;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.03);
         }
 
         /* 메인 편집 영역 스타일 */
         .main-content {
             flex: 1;
-            background-color: var(--background-color);
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
             padding: 40px;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: auto;
         }
 
+        /* 캔버스 영역 스타일 */
         .canvas-area {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-            width: 800px;
-            height: 600px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            border-radius: 20px;
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.08),
+                0 1px 3px rgba(0, 0, 0, 0.05);
+            max-width: 90%;
+            max-height: 85vh;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
 
         /* 입력 필드 스타일 */
@@ -87,9 +100,936 @@
 
         /* 생성된 이미지 스타일 */
         .generated-image {
-            max-width: 90%;
-            max-height: 90%;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .generated-image.loaded {
+            opacity: 1;
+        }
+
+        /* 캔버스 컨테이너 */
+        .canvas-container {
+            padding: 30px;
+            background: linear-gradient(45deg, #f1f5f9, #f8fafc);
+            border-radius: 24px;
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.06),
+                0 1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        /* 캔버스 크기 입력 스타일 추가 */
+        .size-controls {
+            margin-bottom: 20px;
+        }
+        
+        .size-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .size-input-container {
+            flex: 1;
+        }
+        
+        .size-presets {
+            margin-bottom: 15px;
+        }
+
+        .form-select optgroup {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .form-select option {
+            font-weight: normal;
+            padding: 8px;
+        }
+
+        #dpiInfo {
+            color: #666;
+            font-style: italic;
+        }
+
+        .alert-info {
+            background-color: #e8f4f8;
+            border-color: #b8e7f3;
+            color: #0c5460;
+        }
+
+        /* 프롬프트 입력 영역 스타일 수정 */
+        .prompt-input textarea {
+            min-height: 160px; /* 기존 높이의 2배 */
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 12px;
+        }
+
+        /* 프롬프트 예시 스타일 */
+        .prompt-examples {
+            margin-top: 10px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .prompt-examples h6 {
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .example-item {
+            color: #495057;
+            margin-bottom: 8px;
+            padding-left: 12px;
+            border-left: 2px solid #00C4CC;
+        }
+
+        .color-presets {
+            transition: all 0.3s ease;
+        }
+
+        .color-presets[style*="display: none"] {
+            height: 0;
+            margin: 0;
+        }
+
+        #colorPickerContainer {
+            transition: all 0.3s ease;
+        }
+
+        #colorPickerContainer[style*="display: none"] {
+            height: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .custom-input {
+            transition: all 0.3s ease;
+        }
+        .custom-input input[type="text"] {
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+        .custom-input[style*="display: none"] {
+            height: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .color-picker-item {
+            flex: 1;
+        }
+
+        .custom-input {
+            transition: all 0.3s ease;
+        }
+
+        .form-control-color {
+            width: 100%;
+            height: 38px;
+        }
+
+        /* 사�����드바 기본 스타일 */
+        .sidebar {
+            width: 390px;
+            background: linear-gradient(to bottom, #ffffff, #f8fafc);
+            border-right: 1px solid rgba(0, 196, 204, 0.1);
+            padding: 28px;
+            overflow-y: auto;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.03);
+        }
+
+        /* 사이드바 헤더 */
+        .sidebar h3 {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00C4CC 0%, #7928CA 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .sidebar h5 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2d2d2d;
+            margin-bottom: 12px;
+        }
+
+        /* 섹션 컨테이너 */
+        .section-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 196, 204, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        .section-container:hover {
+            box-shadow: 0 8px 25px rgba(0, 196, 204, 0.08);
+            transform: translateY(-2px);
+        }
+
+        /* 섹션 헤더 */
+        .section-container h5 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d2d2d;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 폼 컨트롤 스타일 */
+        .form-select, .form-control {
+            border: 1px solid rgba(0, 196, 204, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #2d2d2d;
+            background-color: white;
+            transition: all 0.2s ease;
+        }
+
+        .form-select:hover, .form-control:hover {
+            border-color: rgba(0, 196, 204, 0.4);
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: #00C4CC;
+            box-shadow: 0 0 0 3px rgba(0, 196, 204, 0.1);
+        }
+
+        /* 생성 버튼 */
+        .generate-button {
+            background: linear-gradient(135deg, #00C4CC 0%, #7928CA 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 18px 32px;
+            font-size: 17px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            margin-top: 32px;
+            letter-spacing: -0.3px;
+        }
+
+        .generate-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(0, 196, 204, 0.25);
+        }
+
+        .generate-button:active {
+            transform: translateY(0);
+            box-shadow: 0 8px 15px rgba(0, 196, 204, 0.2);
+        }
+
+        .generate-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #7928CA 0%, #00C4CC 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .generate-button:hover::before {
+            opacity: 1;
+        }
+
+        .generate-button span {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .generate-button i {
+            font-size: 20px;
+        }
+
+        /* 커스텀 입력 필드 */
+        .custom-input {
+            background: rgba(0, 196, 204, 0.03);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            border: 1px solid rgba(0, 196, 204, 0.1);
+        }
+
+        /* 스크롤바 */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #00C4CC, #7928CA);
+            border-radius: 3px;
+        }
+
+        /* 로딩 상태 스타일 */
+        .loading-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .loading-state .spinner-border {
+            width: 20px;
+            height: 20px;
+            border-width: 2px;
+        }
+
+        /* 캔버스 크기 표시 스타일 수정 */
+        #actualSizeDisplay {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            opacity: 0;  /* 기본적으로 �����김 */
+            transition: opacity 0.2s ease;  /* 부드러운 표시/숨김 효과 */
+        }
+
+        /* 기존의 hover 효과 제거 */
+        .canvas-area:hover #actualSizeDisplay {
+            opacity: 1;
+        }
+
+        /* 빈 캔버스 상태 */
+        .canvas-area:empty::after {
+            content: '이미지를 생성하면 여기에 표시됩니다';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #94a3b8;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        /* 로딩 상태 표시 */
+        .canvas-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f1f5f9;
+            border-top-color: #00C4CC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 드래그 앤 드롭 영역 */
+        .drag-area {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px dashed #e2e8f0;
+            border-radius: 20px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .canvas-area.drag-over .drag-area {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 반응형 조정 */
+        @media (max-width: 1200px) {
+            .main-content {
+                padding: 24px;
+            }
+            
+            .canvas-area {
+                max-width: 95%;
+            }
+        }
+
+        /* CSS 스타일 추가 */
+        .dots::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: '...'; }
+        }
+
+        /* 피드백 컨테이너 스타일 */
+        .feedback-container {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        .feedback-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .feedback-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feedback-button.like {
+            background: linear-gradient(135deg, #00C4CC, #00a4a9);
+            color: white;
+        }
+
+        .feedback-button.edit {
+            background: linear-gradient(135deg, #7928CA, #5b1e99);
+            color: white;
+        }
+
+        .feedback-button.restart {
+            background: linear-gradient(135deg, #666, #444);
+            color: white;
+        }
+
+        .feedback-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .feedback-button:active {
+            transform: translateY(0);
+        }
+
+        /* 수���사항 입력 모달 수정 */
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+            backdrop-filter: blur(5px);
+        }
+
+        .edit-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: modalSlideUp 0.3s ease;
+            overflow: hidden;
+        }
+
+        .edit-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .edit-modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+
+        .edit-modal-body {
+            display: flex;
+            gap: 30px;
+            height: calc(90vh - 150px);
+        }
+
+        .original-image-container {
+            flex: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #editModalImage {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .edit-input-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .edit-modal textarea {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            resize: none;
+        }
+
+        .edit-modal textarea:focus {
+            border-color: #00C4CC;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 196, 204, 0.1);
+        }
+
+        .edit-modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-button.confirm {
+            background: linear-gradient(135deg, #00C4CC, #00a4a9);
+            color: white;
+        }
+
+        .modal-button.cancel {
+            background: #f1f5f9;
+            color: #666;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-button:active {
+            transform: translateY(0);
+        }
+
+        /* 이미지 선택 모달 스타일 */
+        .selection-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+            backdrop-filter: blur(5px);
+        }
+
+        .selection-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 95%;
+            max-width: 800px;
+            max-height: 90vh;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: modalSlideUp 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .selection-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .selection-modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        /* 이미지 옵션 스타일만 수정 */
+        .image-options {
+            display: flex;
+            flex-direction: row;  /* 수평 배치로 변경 */
+            gap: 20px;           /* 이미지 사이 간격 */
+            padding: 20px 0;
+            overflow-x: auto;    /* 필요시 가로 스크롤 */
+        }
+
+        .image-option {
+            flex: 0 0 auto;      /* 크기 고정 */
+            width: 300px;        /* 각 이미지 컨테이너의 너비 */
+        }
+
+        .image-option h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .image-option img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+
+        .select-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00C4CC, #00a4a9);
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .select-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 로딩 오버레이 추가 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #00C4CC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .loading-text {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .edit-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .edit-panel.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .edit-panel h5 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .edit-control {
+            margin-bottom: 15px;
+        }
+
+        .edit-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 스타일 추가 */
+        .design-element {
+            position: absolute;
+            cursor: move;
+            pointer-events: auto;
+        }
+
+        .design-element[contenteditable="true"] {
+            cursor: text;
+        }
+
+        .design-element[contenteditable="true"]:empty::before {
+            content: '텍스트를 입력하세요';
+            color: #999;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #fff;
+            border: 1px solid #000;
+        }
+
+        .resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
+        .resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
+        .resize-handle.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+        .resize-handle.se { bottom: -5px; right: -5px; cursor: se-resize; }
+        .resize-handle.n { top: -5px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+        .resize-handle.s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+        .resize-handle.e { right: -5px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
+        .resize-handle.w { left: -5px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
+
+        .btn-outline-secondary.active {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-group .btn {
+            padding: 8px 16px;
+        }
+
+        /* AI 광고 문구 추천 스타일 */
+        .generated-copies {
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .copy-item {
+            background: #f8f9fa;
+            border-left: 3px solid #00C4CC;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-item:hover {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 196, 204, 0.1);
+            transform: translateX(3px);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #00C4CC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 저장 버튼 스타일 */
+        .save-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .save-button:hover {
+            background-color: #00b3b9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* 사이드바 하단 여백 */
+        .sidebar {
+            padding-bottom: 40px;
+        }
+
+        /* 수정 모달 스타일 수정 */
+        .selection-modal-body {
+            padding: 20px;
+        }
+
+        .image-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: start;
+        }
+
+        .image-option {
+            flex: 1;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .image-option img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-option h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .select-button {
+            padding: 8px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .select-button:hover {
+            background-color: #00b3b9;
         }
     </style>
     <!-- 스타일 파일 포함 -->
@@ -102,57 +1042,1384 @@
     <div class="workspace">
         <!-- 왼쪽 사이드바 -->
         <div class="sidebar">
-            <h3 class="mb-4">광고 생성</h3>
-            <textarea 
-                class="prompt-input" 
-                rows="4" 
-                placeholder="광고 문구나 이미지에 대한 설명을 입력하세요..."
-                id="userInput"
-            ></textarea>
-            <button class="action-button primary-button" onclick="generateAd()">
-                생성하기
+            <h3 class="mb-4"> 이미지 성</h3>
+            
+            <!-- 1. 캔버스 크기 설정 -->
+            <div class="size-controls mb-4">
+                <h5 class="mb-3">캔버스 크기</h5>
+                <div class="size-presets">
+                    <select class="form-select mb-2" id="sizePreset" onchange="applySizePreset()">
+                        <optgroup label="프린트 크">
+                            <option value="a4_portrait" selected>A4 세로 (2480x3508)</option>
+                            <option value="a4_landscape">A4 가로 (3508x2480)</option>
+                            <option value="a3_portrait">A3 세로 (3508x4961)</option>
+                            <option value="a3_landscape">A3 가로 (4961x3508)</option>
+                            <option value="a5_portrait">A5 세로 (1748x2480)</option>
+                            <option value="a5_landscape">A5 가로 (2480x1748)</option>
+                        </optgroup>
+                        <optgroup label="포스터 크기">
+                            <option value="poster_small_portrait">포스터 세로 - 소 (2480x3508)</option>
+                            <option value="poster_small_landscape">포스터 가로 - 소 (3508x2480)</option>
+                            <option value="poster_medium_portrait">포스터 세로 - 중 (3508x4961)</option>
+                            <option value="poster_medium_landscape">포스터 가로 - 중 (4961x3508)</option>
+                        </optgroup>
+                        <optgroup label="SNS 크기">
+                            <option value="instagram">인스타그 게시물 (1080x1080)</option>
+                            <option value="story">스토리/릴스 (1080x1920)</option>
+                            <option value="facebook">페이스북 커버 (1640x924)</option>
+                            <option value="youtube">유튜브 썸네일 (1280x720)</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="size-input-group">
+                    <div class="size-input-container">
+                        <label class="form-label">가로 (px)</label>
+                        <input type="number" class="form-control" id="canvasWidth" value="1080" min="100" max="2048" onchange="updateCanvasSize()">
+                    </div>
+                    <div class="size-input-container">
+                        <label class="form-label">세로 (px)</label>
+                        <input type="number" class="form-control" id="canvasHeight" value="1080" min="100" max="2048" onchange="updateCanvasSize()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 이미지 설명 입력 -->
+            <div class="prompt-section mb-4">
+                <h5 class="mb-3">배경 이미지 설명</h5>
+                <textarea 
+                    class="form-control mb-3" 
+                    rows="19"
+                    placeholder="예시)
+
+장면 묘사:
+• 호수가 있는 풍경
+• 하늘에서 바라보는 구도
+• 호수 주변에 나무들이 있음
+• 물에 하늘이 비치는 모습
+
+세부 요소:
+• 맑은 호수
+• 울창한 나무들
+• 하에 떠있는 구름
+• 아침 햇살
+
+* 구체적인 스타일, 색감, 분위기는 아래 옵션에서 선택해주��요."
+                    id="imagePrompt"
+                ></textarea>
+            </div>
+
+            <!-- 3. 추가 정들 -->
+            <div class="additional-settings">
+                <!-- 스일 설정 -->
+                <div class="style-section mb-4">
+                    <h5 class="mb-3">스타일 설정</h5>
+                    <select class="form-select mb-3" id="imageStyle" onchange="toggleCustomInput('style')">
+                        <option value="none">선택 안함</option>
+                        <option value="gradient">그라데이션 (Gradient)</option>
+                        <option value="geometric">기하학적 패턴 (Geometric)</option>
+                        <option value="minimal">미니멀 (Minimal)</option>
+                        <option value="texture">텍스처 (Texture)</option>
+                        <option value="nature_abstract">추상화된 자연 (Abstract Nature)</option>
+                        <option value="bokeh">보케 효과 (Bokeh Effect)</option>
+                        <option value="cloudscape">구름 ����� (Cloudscape)</option>
+                        <option value="light_leak">빛 새는 효과 (Light Leak)</option>
+                        <option value="noise_grain">노이즈/그레인 (Noise/Grain)</option>
+                        <option value="blur">블러 효과 (Blur)</option>
+                        <option value="custom">직접 입력</option>
+                    </select>
+                    <div id="customStyleInput" class="custom-input mb-3" style="display: none;">
+                        <input type="text" class="form-control" placeholder="원하는 스타일을 입력하세요">
+                    </div>
+                </div>
+
+                <!-- 색상 테마 -->
+                <div class="color-section mb-4">
+                    <h5 class="mb-3">색상 테마</h5>
+                    <select class="form-select mb-3" id="colorMood" onchange="toggleCustomInput('color')">
+                        <option value="none">선택 안함</option>
+                        <option value="modern">모던한 (Modern)</option>
+                        <option value="corporate">기업용 (Corporate)</option>
+                        <option value="creative">크리에이티브 (Creative)</option>
+                        <option value="elegant">아름다운 (Elegant)</option>
+                        <option value="bold">대담한 (Bold)</option>
+                        <option value="soft">부드러운 (Soft)</option>
+                        <option value="custom">직접 입력</option>
+                    </select>
+                    <div id="customColorInput" class="custom-input mb-3" style="display: none;">
+                        <div class="mb-2">
+                            <input type="text" class="form-control" placeholder="원하는 색상 테마를 입력하세요">
+                        </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <div class="color-picker-item">
+                                <label class="form-label small text-muted">주요 색상</label>
+                                <input type="color" class="form-control form-control-color" id="primaryColor">
+                            </div>
+                            <div class="color-picker-item">
+                                <label class="form-label small text-muted">보조 색상</label>
+                                <input type="color" class="form-control form-control-color" id="secondaryColor">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 분위기 -->
+                <div class="mood-section mb-4">
+                    <h5 class="mb-3">분위기</h5>
+                    <select class="form-select mb-3" id="imageMood" onchange="toggleCustomInput('mood')">
+                        <option value="none">선택 안함</option>
+                        <option value="professional">전문적인 (Professional)</option>
+                        <option value="dynamic">역동적인 (Dynamic)</option>
+                        <option value="sophisticated">세련된 (Sophisticated)</option>
+                        <option value="innovative">혁신적인 (Innovative)</option>
+                        <option value="trustworthy">뢰감 있는 (Trustworthy)</option>
+                        <option value="luxurious">고급스러운 (Luxurious)</option>
+                        <option value="custom">직접 입력</option>
+                    </select>
+                    <div id="customMoodInput" class="custom-input mb-3" style="display: none;">
+                        <input type="text" class="form-control" placeholder="원하는 분위기를 입력하세요">
+                    </div>
+                </div>
+
+                <!-- 배경 복잡도 -->
+                <div class="complexity-section mb-4">
+                    <h5 class="mb-3">배경 복잡도</h5>
+                    <select class="form-select mb-3" id="backgroundComplexity" onchange="toggleCustomInput('complexity')">
+                        <option value="none">선택 안함</option>
+                        <option value="very_simple">매우 단순 (텍스트 가독성 최우선)</option>
+                        <option value="simple">단순 (텍스트 중심)</option>
+                        <option value="balanced">균형잡힌 (텍스트와 배경 조화)</option>
+                        <option value="detailed">잡 (화려한 배경)</option>
+                        <option value="custom">직접 입력</option>
+                    </select>
+                    <div id="customComplexityInput" class="custom-input mb-3" style="display: none;">
+                        <input type="text" class="form-control" placeholder="원하는 복잡도를 설명해주세요">
+                    </div>
+                </div>
+
+                <!-- 레이아웃 방향 섹션 -->
+                <div class="layout-section mb-4">
+                    <h5 class="mb-3">레이아웃 방향</h5>
+                    <select class="form-select mb-3" id="layoutDirection" onchange="toggleCustomInput('layout')">
+                        <option value="none">선택 안함</option>
+                        <optgroup label="기본 레이아웃">
+                            <option value="centered">중앙 집중형</option>
+                            <option value="full_background">전체 배경형</option>
+                        </optgroup>
+                        <optgroup label="텍스트 공간 확보">
+                            <option value="left_text">좌 텍스트 공간</option>
+                            <option value="right_text">우측 텍스트 공</option>
+                            <option value="top_text">상단 텍스트 공간</option>
+                            <option value="bottom_text">하단 텍스트 공간</option>
+                        </optgroup>
+                        <optgroup label="이미지 쏠림">
+                            <option value="left_weighted">좌측 강조</option>
+                            <option value="right_weighted">우측 강조</option>
+                            <option value="top_weighted">상단 강조</option>
+                            <option value="bottom_weighted">하단 강조</option>
+                        </optgroup>
+                        <option value="custom">직접 입력</option>
+                    </select>
+                    <div id="customLayoutInput" class="custom-input mb-3" style="display: none;">
+                        <input type="text" class="form-control" placeholder="원하는 레이아웃 방향을 명해주세요 (예: 우측 상단에 스트 공간 확보)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 생성 ��튼 -->
+            <button class="generate-button" onclick="generateBackground()">
+                <span class="normal-state">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    배경 이미지 생성하기
+                </span>
+                <span class="loading-state" style="display: none">
+                    생성중<span class="dots"></span>
+                </span>
             </button>
         </div>
 
         <!-- 메인 편집 영역 -->
         <div class="main-content">
-            <div class="canvas-area">
-                <img id="adImage" class="generated-image" src="" alt="Generated Ad" style="display: none;">
-                <p id="adText" class="text-center"></p>
+            <div class="canvas-area" id="canvasArea">
+                <img id="backgroundImage" class="generated-image" onload="this.classList.add('loaded')" style="display: none">
             </div>
+        </div>
+    </div>
+
+    <!-- 크기 표시를 workspace 밖으로 이동 -->
+    <div id="actualSizeDisplay"></div>
+
+    <!-- 이미지 생성 후 피드백 UI -->
+    <div class="feedback-container" id="feedbackContainer" style="display: none;">
+        <div class="feedback-buttons">
+            <button class="feedback-button like" onclick="handleFeedback('like')">
+                <i class="fas fa-heart"></i>
+                마음에 들어요
+            </button>
+            <button class="feedback-button edit" onclick="handleFeedback('edit')">
+                <i class="fas fa-pencil-alt"></i>
+                수정사항이 있어요
+            </button>
+            <button class="feedback-button restart" onclick="handleFeedback('restart')">
+                <i class="fas fa-redo"></i>
+                처음부터 다시 할래요
+            </button>
+        </div>
+    </div>
+
+    <!-- 수정사항 입력 모달 수정 -->
+    <div class="edit-modal" id="editModal" style="display: none;">
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h3>수정사항 입력</h3>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="edit-modal-body">
+                <div class="original-image-container">
+                    <img id="editModalImage" src="" alt="원본 이미지">
+                </div>
+                <div class="edit-input-container">
+                    <textarea 
+                        id="editFeedback" 
+                        placeholder="예시)
+- 배경 색상을 좀 더 밝게 해주세요
+- 구도를 좀 더 여유롭게 해주세요
+- 전체적인 분위기를 좀 더 따뜻하게 해주세요"
+                        rows="6"
+                    ></textarea>
+                    <div class="edit-modal-buttons">
+                        <button class="modal-button confirm" onclick="submitEdit()">
+                            <i class="fas fa-check"></i>
+                            수정 요청하기
+                        </button>
+                        <button class="modal-button cancel" onclick="closeEditModal()">
+                            <i class="fas fa-times"></i>
+                            취소
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 이미지 선택 모달 수정 -->
+    <div class="selection-modal" id="selectionModal" style="display: none;">
+        <div class="selection-modal-content">
+            <div class="selection-modal-header">
+                <h3>수정된 이미지 선택</h3>
+                <button class="modal-close" onclick="closeSelectionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="selection-modal-body">
+                <div class="image-options">
+                    <div class="image-option">
+                        <h4>원본 이미지</h4>
+                        <img id="originalImage" src="" alt="원본 이미지">
+                        <button class="select-button" onclick="selectImage('original')">
+                            <i class="fas fa-check"></i> 선택
+                        </button>
+                    </div>
+                    <div class="image-option">
+                        <h4>수정안 1</h4>
+                        <img id="option1Image" src="" alt="수정안 1">
+                        <button class="select-button" onclick="selectImage('option1')">
+                            <i class="fas fa-check"></i> 선택
+                        </button>
+                    </div>
+                    <div class="image-option">
+                        <h4>수정안 2</h4>
+                        <img id="option2Image" src="" alt="수정안 2">
+                        <button class="select-button" onclick="selectImage('option2')">
+                            <i class="fas fa-check"></i> 선택
+                        </button>
+                    </div>
+                    <div class="image-option">
+                        <h4>수정안 3</h4>
+                        <img id="option3Image" src="" alt="수정안 3">
+                        <button class="select-button" onclick="selectImage('option3')">
+                            <i class="fas fa-check"></i> 선택
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 로딩 오버레이 추가 -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">수정된 이미지 생성 중...</div>
         </div>
     </div>
 
     <!-- Bootstrap JS 추가 -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
-        function generateAd() {
-            const userInput = document.getElementById('userInput').value.trim();
-            if (!userInput) {
-                alert('광고 요구를 입력해주세요.');
+        function applySizePreset() {
+            const preset = document.getElementById('sizePreset').value;
+            const presetSizes = {
+                // 프린트 크기 - 세로
+                'a4_portrait': { width: 2480, height: 3508 },
+                'a3_portrait': { width: 3508, height: 4961 },
+                'a5_portrait': { width: 1748, height: 2480 },
+                
+                // 프린트 크기 - 가로
+                'a4_landscape': { width: 3508, height: 2480 },
+                'a3_landscape': { width: 4961, height: 3508 },
+                'a5_landscape': { width: 2480, height: 1748 },
+                
+                // 포스터 크기 - 세로
+                'poster_small_portrait': { width: 2480, height: 3508 },
+                'poster_medium_portrait': { width: 3508, height: 4961 },
+                
+                // 포스터 크기 - 가로
+                'poster_small_landscape': { width: 3508, height: 2480 },
+                'poster_medium_landscape': { width: 4961, height: 3508 },
+                
+                // SNS 크기
+                'instagram': { width: 1080, height: 1080 },
+                'story': { width: 1080, height: 1920 },
+                'facebook': { width: 1640, height: 924 },
+                'youtube': { width: 1280, height: 720 }
+            };
+            
+            if (presetSizes[preset]) {
+                document.getElementById('canvasWidth').value = presetSizes[preset].width;
+                document.getElementById('canvasHeight').value = presetSizes[preset].height;
+                updateCanvasSize();
+            }
+        }
+
+        // 페이지 로드 시 A4 세로 기 자동 적용
+        window.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('canvasWidth').value = 2480;
+            document.getElementById('canvasHeight').value = 3508;
+            updateCanvasSize();
+        });
+
+        // 캔버스 크기 업데이트
+        function updateCanvasSize() {
+            const width = parseInt(document.getElementById('canvasWidth').value);
+            const height = parseInt(document.getElementById('canvasHeight').value);
+            const canvasArea = document.getElementById('canvasArea');
+            
+            // 캔대스 시 크기 계산 (1.3 증가)
+            const maxWidth = Math.min(window.innerWidth * 0.7 * 1.3, 1040);  // 기존 800 * 1.3
+            const maxHeight = Math.min(window.innerHeight * 0.7 * 1.3, 780); // 기존 600 * 1.3
+            
+            // 비율 계산
+            const aspectRatio = width / height;
+            let displayWidth, displayHeight;
+            
+            if (width > height) {
+                displayWidth = Math.min(maxWidth, width);
+                displayHeight = displayWidth / aspectRatio;
+                if (displayHeight > maxHeight) {
+                    displayHeight = maxHeight;
+                    displayWidth = displayHeight * aspectRatio;
+                }
+            } else {
+                displayHeight = Math.min(maxHeight, height);
+                displayWidth = displayHeight * aspectRatio;
+                if (displayWidth > maxWidth) {
+                    displayWidth = maxWidth;
+                    displayHeight = displayWidth / aspectRatio;
+                }
+            }
+            
+            // 캔버 크기 설정
+            canvasArea.style.width = `${displayWidth}px`;
+            canvasArea.style.height = `${displayHeight}px`;
+            
+            // 실제 크기 표시 업데이트
+            const sizeDisplay = document.getElementById('actualSizeDisplay');
+            if (sizeDisplay) {
+                sizeDisplay.textContent = `표시 크기: ${Math.round(displayWidth)}x${Math.round(displayHeight)}px (원본: ${width}x${height}px)`;
+            }
+            
+            // 이미지가 있다면 이미지도 크 조정
+            const backgroundImage = document.getElementById('backgroundImage');
+            if (backgroundImage.src) {
+                backgroundImage.style.display = 'block';
+            }
+        }
+
+        function generateBackground() {
+            // 로딩 상 표시
+            const button = document.querySelector('.generate-button');
+            const normalState = button.querySelector('.normal-state');
+            const loadingState = button.querySelector('.loading-state');
+            
+            button.disabled = true;
+            normalState.style.display = 'none';
+            loadingState.style.display = 'inline-block';
+
+            // 테스트용 이미지 표시
+            setTimeout(() => {
+                const backgroundImage = document.getElementById('backgroundImage');
+                backgroundImage.src = '/static/images/test/back.png';  // 수정된 ��레이스홀더 URL
+                backgroundImage.style.display = 'block';
+                updateCanvasSize();
+
+                // 딩 상태 해제
+                button.disabled = false;
+                normalState.style.display = 'inline-block';
+                loadingState.style.display = 'none';
+
+                // 피드백 UI ��시
+                document.getElementById('feedbackContainer').style.display = 'block';
+            }, 2000);
+        }
+
+        function handleFeedback(type) {
+            const sidebar = document.querySelector('.sidebar');
+            
+            switch(type) {
+                case 'like':
+                    // 기존 피드백 UI 숨기기
+                    document.getElementById('feedbackContainer').style.display = 'none';
+                    
+                    // 사이드바 내용을 디자인 도구로 변경
+                    sidebar.innerHTML = `
+                        <h3 class="mb-4">디자인 도구</h3>
+                        <!-- 텍스트 도구 섹션 내부 ���단에 추가 -->
+                        <div class="section-container mb-4">
+                            <h5><i class="fas fa-font"></i> 텍스트 추가</h5>
+                            <div class="mb-3">
+                                <input type="text" id="promptInput" class="form-control mb-2" 
+                                    placeholder="제품/서비스 특징을 입력하세요 (예: 유기농 샐러드 전문점)">
+                                <div class="d-flex gap-2">
+                                    <select id="copyToneSelect" class="form-select">
+                                        <option value="casual">친근한</option>
+                                        <option value="professional">전문적인</option>
+                                        <option value="witty">재치있는</option>
+                                        <option value="emotional">감성적인</option>
+                                        <option value="direct">직관적인</option>
+                                    </select>
+                                    <button class="btn btn-primary" onclick="generateAdCopy()" style="white-space: nowrap;">
+                                        <i class="fas fa-wand-magic-sparkles"></i> 문구 생성
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="generatedCopies" class="generated-copies" style="display: none;">
+                                <div class="copy-results">
+                                    <!-- 여기에 생성된 문구들이 추가됨 -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 텍스트 도구 -->
+                        <div class="section-container mb-4">
+                            <h5><i class="fas fa-font"></i> 텍스트 추가</h5>
+                            <input type="text" id="textInput" class="form-control mb-2" placeholder="텍스트 입력">
+                            <select id="fontSelect" class="form-select mb-2">
+                                <optgroup label="고딕체">
+                                    <option value="'Noto Sans KR', sans-serif">노토 산스</option>
+                                    <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+                                </optgroup>
+                                <optgroup label="명조체">
+                                    <option value="'Nanum Myeongjo', serif">나눔명조</option>
+                                </optgroup>
+                                <optgroup label="손글씨체">
+                                    <option value="나눔손글씨">나눔손글씨</option>
+                                    <option value="카페24">카페24</option>
+                                    <option value="마포한아름">마포한아름</option>
+                                </optgroup>
+                            </select>
+                            <div class="d-flex gap-2 mb-2">
+                                <input type="color" id="textColor" class="form-control form-control-color" value="#000000">
+                                <input type="number" id="fontSize" class="form-control" value="16" min="8" max="200">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">텍스트 스타일</label>
+                                <div class="btn-group w-100" role="group">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleTextStyle('bold')">
+                                        <i class="fas fa-bold"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleTextStyle('italic')">
+                                        <i class="fas fa-italic"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleTextStyle('underline')">
+                                        <i class="fas fa-underline"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="action-button primary-button" onclick="addText()">
+                                텍스트 추가하기
+                            </button>
+                        </div>
+
+                        <!-- 도형 도구 -->
+                        <div class="section-container mb-4">
+                            <h5><i class="fas fa-shapes"></i> 도형</h5>
+                            <div class="mb-3">
+                                <label class="form-label">채워진 도형</label>
+                                <div class="d-grid gap-2">
+                                    <button class="action-button" onclick="addShape('rectangle', false)">
+                                        <i class="fas fa-square"></i> 사각형
+                                    </button>
+                                    <button class="action-button" onclick="addShape('circle', false)">
+                                        <i class="fas fa-circle"></i> 원형
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">테두리 도형</label>
+                                <div class="d-grid gap-2">
+                                    <button class="action-button" onclick="addShape('rectangle', true)">
+                                        <i class="far fa-square"></i> 테두리 사각형
+                                    </button>
+                                    <button class="action-button" onclick="addShape('circle', true)">
+                                        <i class="far fa-circle"></i> 테두리 원형
+                                    </button>
+                                    <button class="action-button" onclick="addShape('rounded-rectangle', true)">
+                                        <i class="far fa-square"></i> 둥근 테두리 사각형
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">도형 색상</label>
+                                <input type="color" id="shapeColor" class="form-control form-control-color w-100 mb-2" value="#000000">
+                            </div>
+                        </div>
+
+                        <!-- 광고 저장하기 버튼 추가 -->
+                        <div class="section-container mt-4">
+                            <button class="btn btn-primary w-100 save-button" onclick="openSaveModal()">
+                                <i class="fas fa-save"></i> 광고 저장하기
+                            </button>
+                        </div>
+                    `;
+                    
+                    // 디자인 레이어 초기화
+                    initializeDesignLayer();
+                    
+                    // 수정 패널 생성 - 이 부분이 누락되어 있습니다
+                    createEditPanel();
+                    break;
+                    
+                case 'edit':
+                    // 수정 모달에 현재 이미지 표시
+                    const currentImage = document.getElementById('backgroundImage');
+                    const modalImage = document.getElementById('editModalImage');
+                    modalImage.src = currentImage.src;
+                    
+                    // 모달 표시
+                    document.getElementById('editModal').style.display = 'flex';
+                    document.getElementById('feedbackContainer').style.display = 'none';
+                    
+                    // 모달 닫기 버튼에 이벤트 리스너 추가
+                    document.querySelector('#editModal .modal-close').addEventListener('click', closeEditModal);
+                    document.querySelector('#editModal .modal-button.cancel').addEventListener('click', closeEditModal);
+                    break;
+                    
+                case 'restart':
+                    if(confirm('모든 설정이 초기화됩니다. 계속하시겠습니까?')) {
+                        // 모든 입력값 초기��
+                        document.getElementById('imagePrompt').value = '';
+                        document.getElementById('imageStyle').value = 'none';
+                        document.getElementById('colorMood').value = 'none';
+                        document.getElementById('imageMood').value = 'none';
+                        document.getElementById('backgroundComplexity').value = 'none';
+                        document.getElementById('layoutDirection').value = 'none';
+                        
+                        // 이미지 ��거
+                        const backgroundImage = document.getElementById('backgroundImage');
+                        backgroundImage.style.display = 'none';
+                        backgroundImage.src = '';
+                        
+                        feedbackContainer.style.display = 'none';
+                    }
+                    break;
+            }
+        }
+
+        // 수정사항 제출 함수 수정
+        function submitEdit() {
+            const editText = document.getElementById('editFeedback').value.trim();
+            if (editText) {
+                // 수정 모달 닫고 로딩 오버레이 표시
+                document.getElementById('editModal').style.display = 'none';
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                
+                // 테스트용 이미지로 직접 설정 (2초 후)
+                setTimeout(() => {
+                    // 로딩 오버레이 숨기기
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    
+                    // 이미지 설정
+                    const currentImage = document.getElementById('backgroundImage');
+                    document.getElementById('originalImage').src = currentImage.src;
+                    
+                    // 테스트용 이���지 설정
+                    document.getElementById('option1Image').src = '/static/images/test/test1.jpg';
+                    document.getElementById('option2Image').src = '/static/images/test/test3.jpg';
+                    document.getElementById('option3Image').src = '/static/images/test/test2.jpg';
+                    
+                    // 선택 모달 표시
+                    document.getElementById('selectionModal').style.display = 'flex';
+                }, 2000);
+                
+            } else {
+                alert('수정사항을 입력해주세요.');
+            }
+        }
+
+        // 이미지 선택 함수 수정
+        function selectImage(option) {
+            const backgroundImage = document.getElementById('backgroundImage');
+            switch(option) {
+                case 'original':
+                    // 원본 이미지 유지
+                    break;
+                case 'option1':
+                    backgroundImage.src = document.getElementById('option1Image').src;
+                    break;
+                case 'option2':
+                    backgroundImage.src = document.getElementById('option2Image').src;
+                    break;
+                case 'option3':
+                    backgroundImage.src = document.getElementById('option3Image').src;
+                    break;
+            }
+            closeSelectionModal();
+            // 피드백 UI 다시 표시
+            document.getElementById('feedbackContainer').style.display = 'block';
+        }
+
+        // 선택 모달 닫기 함수
+        function closeSelectionModal() {
+            document.getElementById('selectionModal').style.display = 'none';
+            document.getElementById('feedbackContainer').style.display = 'flex';
+        }
+
+        // 윈도우 리사이즈 이벤트에 디바운스 적용
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(updateCanvasSize, 100);
+        });
+
+        function toggleCustomInput(type) {
+            const select = document.getElementById(`${type}Mood`) || 
+                          document.getElementById(`image${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            const customInput = document.getElementById(`custom${type.charAt(0).toUpperCase() + type.slice(1)}Input`);
+            
+            if (select && customInput) {
+                if (select.value === 'custom') {
+                    customInput.style.display = 'block';
+                } else {
+                    customInput.style.display = 'none';
+                }
+            }
+        }
+
+        // 페이지 로드 시 초기 상태 설정
+        window.addEventListener('DOMContentLoaded', function() {
+            const colorMood = document.getElementById('colorMood');
+            if (colorMood) {
+                toggleCustomInput('color');
+            }
+        });
+
+        // 마우스 이벤트 핸들러 추가
+        document.getElementById('canvasArea').addEventListener('mouseenter', function() {
+            document.getElementById('actualSizeDisplay').style.opacity = '1';
+        });
+
+        document.getElementById('canvasArea').addEventListener('mouseleave', function() {
+            document.getElementById('actualSizeDisplay').style.opacity = '0';
+        });
+
+        // 디자인 관련 전역 변수
+        let selectedElement = null;
+        let isDragging = false;
+        let currentX;
+        let currentY;
+
+        function initializeDesignLayer() {
+            const canvasArea = document.getElementById('canvasArea');
+            const designLayer = document.createElement('div');
+            designLayer.id = 'designLayer';
+            designLayer.style.position = 'absolute';
+            designLayer.style.inset = '0';
+            designLayer.style.pointerEvents = 'none';
+            canvasArea.appendChild(designLayer);
+            
+            // 캔버스 영역 클릭 시 선택 해제
+            canvasArea.addEventListener('click', function(e) {
+                // 클릭된 요소가 캔버스 영역 자체일 때만 선택 해제
+                if (e.target === canvasArea) {
+                    if (selectedElement) {
+                        // 선택된 요소의 리사이즈 핸들 숨기기
+                        const handles = selectedElement.querySelectorAll('.resize-handle');
+                        handles.forEach(handle => handle.style.display = 'none');
+                        
+                        // 선택 상태 해제
+                        selectedElement = null;
+                        
+                        // 에딧 패널 숨기기
+                        const editPanel = document.getElementById('editPanel');
+                        if (editPanel) {
+                            editPanel.classList.remove('show');
+                        }
+                    }
+                }
+            });
+        }
+
+        function createEditPanel() {
+            const editPanel = document.createElement('div');
+            editPanel.id = 'editPanel';
+            editPanel.className = 'edit-panel';
+            editPanel.innerHTML = `
+                <h5><i class="fas fa-edit"></i> 요소 수정</h5>
+                <div id="elementControls" style="display: none;">
+                    <div id="textControls" class="edit-control" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">텍스트</label>
+                            <input type="text" id="editText" class="form-control" onchange="updateText()">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">글꼴</label>
+                            <select id="editFont" class="form-select" onchange="updateFont()">
+                                <optgroup label="고딕체">
+                                    <option value="'Noto Sans KR', sans-serif">노토 산스</option>
+                                    <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+                                </optgroup>
+                                <optgroup label="명조체">
+                                    <option value="'Nanum Myeongjo', serif">나눔명조</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">스타일</label>
+                            <div class="btn-group w-100">
+                                <button class="btn btn-outline-secondary" onclick="toggleTextStyle('bold')">
+                                    <i class="fas fa-bold"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="toggleTextStyle('italic')">
+                                    <i class="fas fa-italic"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="toggleTextStyle('underline')">
+                                    <i class="fas fa-underline"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">색상</label>
+                            <input type="color" id="editColor" class="form-control form-control-color w-100" onchange="updateColor()">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">크기</label>
+                            <input type="number" id="editSize" class="form-control" min="8" max="200" onchange="updateSize()">
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-danger w-100 mt-3" onclick="deleteElement()">
+                        <i class="fas fa-trash"></i> 삭제
+                    </button>
+                </div>
+                <div id="noElementSelected" class="text-muted text-center">
+                    수정할 요소를 선택하세요
+                </div>
+            `;
+            document.body.appendChild(editPanel);
+        }
+
+        function selectElement(element) {
+            // 이전 선택 요소의 스타일 초기화
+            if (selectedElement) {
+                selectedElement.style.outline = 'none';
+                const prevHandles = selectedElement.querySelectorAll('.resize-handle');
+                prevHandles.forEach(handle => handle.style.display = 'none');
+            }
+            
+            // 새로운 요소 선택
+            selectedElement = element;
+            selectedElement.style.outline = '2px solid #00C4CC';
+            
+            // 리사이즈 핸들 표시
+            const handles = element.querySelectorAll('.resize-handle');
+            handles.forEach(handle => handle.style.display = 'block');
+            
+            // 수정 패널 업데이트
+            const editPanel = document.getElementById('editPanel');
+            const elementControls = document.getElementById('elementControls');
+            const noElementSelected = document.getElementById('noElementSelected');
+            const textControls = document.getElementById('textControls');
+            const shapeControls = document.getElementById('shapeControls');
+            
+            editPanel.classList.add('show');
+            elementControls.style.display = 'block';
+            noElementSelected.style.display = 'none';
+            
+            // 텍스트 요소인 경우
+            const isText = element.contentEditable === 'true';
+            textControls.style.display = isText ? 'block' : 'none';
+            shapeControls.style.display = isText ? 'none' : 'block';
+            
+            // 현재 값으로 컨트롤 업데이트
+            updateControlValues(element);
+        }
+
+        function updateControlValues(element) {
+            const isText = element.contentEditable === 'true';
+            
+            if (isText) {
+                // 텍스트 컨트롤 값 업데이트
+                document.getElementById('editText').value = element.innerText;
+                document.getElementById('editFont').value = element.style.fontFamily || "'Noto Sans KR', sans-serif";
+                document.getElementById('editColor').value = rgbToHex(element.style.color || '#000000');
+                document.getElementById('editSize').value = parseInt(element.style.fontSize) || 16;
+                
+                // 텍스트 스타일 버튼 상태 업데이트
+                document.querySelector('button[onclick="toggleTextStyle(\'bold\')"]')
+                    .classList.toggle('active', element.style.fontWeight === 'bold');
+                document.querySelector('button[onclick="toggleTextStyle(\'italic\')"]')
+                    .classList.toggle('active', element.style.fontStyle === 'italic');
+                document.querySelector('button[onclick="toggleTextStyle(\'underline\')"]')
+                    .classList.toggle('active', element.style.textDecoration === 'underline');
+            }
+        }
+
+        function updateText() {
+            if (!selectedElement) return;
+            selectedElement.innerText = document.getElementById('editText').value;
+        }
+
+        function updateFont() {
+            if (!selectedElement) return;
+            const fontFamily = document.getElementById('editFont').value;
+            selectedElement.style.fontFamily = fontFamily;
+        }
+
+        function updateColor() {
+            if (!selectedElement) return;
+            selectedElement.style.color = document.getElementById('editColor').value;
+        }
+
+        function updateShapeColor() {
+            if (!selectedElement) return;
+            const isOutlineShape = selectedElement.style.backgroundColor === 'transparent';
+            
+            if (isOutlineShape) {
+                // 테두리 도형인 경우 테두리 색상만 변경
+                const color = document.getElementById('editShapeColor').value;
+                const thickness = parseInt(selectedElement.style.border) || 2;
+                selectedElement.style.border = `${thickness}px solid ${color}`;
+            } else {
+                // 채워진 도형인 경우 배경색 변경
+                selectedElement.style.backgroundColor = document.getElementById('editShapeColor').value;
+            }
+        }
+
+        function updateSize() {
+            if (!selectedElement) return;
+            const size = parseInt(document.getElementById('editSize').value);
+            const isOutlineShape = selectedElement.style.backgroundColor === 'transparent';
+            
+            if (isOutlineShape) {
+                // 테두리 도형인 경우 테두리 두께 변경
+                if (isNaN(size) || size < 1 || size > 20) {
+                    alert('테두리 두께는 1px에서 20px 사이여야 합니다.');
+                    return;
+                }
+                const color = selectedElement.style.border.match(/rgb\(.*?\)|#[0-9a-fA-F]{6}/)[0];
+                selectedElement.style.border = `${size}px solid ${color}`;
+            } else {
+                // 채워진 도형이나 텍스트인 경우 기존 로직 유지
+                if (isNaN(size) || size < 8 || size > 500) {
+                    alert('크기는 8px에서 500px 사이여야 합니다.');
+                    return;
+                }
+                if (selectedElement.contentEditable === 'true') {
+                    selectedElement.style.fontSize = `${size}px`;
+                } else {
+                    selectedElement.style.width = `${size}px`;
+                    selectedElement.style.height = `${size}px`;
+                }
+            }
+        }
+
+        function updateOpacity() {
+            if (!selectedElement) return;
+            selectedElement.style.opacity = document.getElementById('editOpacity').value / 100;
+        }
+
+        function updateRotation() {
+            if (!selectedElement) return;
+            selectedElement.style.transform = `rotate(${document.getElementById('editRotation').value}deg)`;
+        }
+
+        function deleteElement() {
+            if (!selectedElement) return;
+            selectedElement.remove();
+            selectedElement = null;
+            
+            const editPanel = document.getElementById('editPanel');
+            const elementControls = document.getElementById('elementControls');
+            const noElementSelected = document.getElementById('noElementSelected');
+            
+            editPanel.classList.remove('show');
+            elementControls.style.display = 'none';
+            noElementSelected.style.display = 'block';
+        }
+
+        // 텍스트 추가 함수
+        function addText() {
+            const text = document.getElementById('textInput').value;
+            const font = document.getElementById('fontSelect').value;
+            const color = document.getElementById('textColor').value;
+            const size = document.getElementById('fontSize').value;
+
+            if (!text) return;
+
+            const textElement = document.createElement('div');
+            textElement.contentEditable = 'true';
+            textElement.className = 'design-element';
+            textElement.innerText = text;
+            textElement.style.position = 'absolute';
+            textElement.style.left = '50%';
+            textElement.style.top = '50%';
+            textElement.style.transform = 'translate(-50%, -50%)';
+            textElement.style.fontFamily = font; // 실제 폰트 적용
+            textElement.style.fontSize = `${size}px`;
+            textElement.style.color = color;
+            textElement.style.cursor = 'move';
+            textElement.style.pointerEvents = 'auto';
+
+            document.getElementById('designLayer').appendChild(textElement);
+            makeElementDraggable(textElement);
+        }
+
+        // 도형 추가 함수
+        function addShape(type, isOutline) {
+            const color = document.getElementById('shapeColor').value;
+            const size = '100';
+
+            const shape = document.createElement('div');
+            shape.className = 'design-element';
+            shape.style.position = 'absolute';
+            shape.style.width = `${size}px`;
+            shape.style.height = `${size}px`;
+            shape.style.left = '50%';
+            shape.style.top = '50%';
+            shape.style.transform = 'translate(-50%, -50%)';
+            shape.style.cursor = 'move';
+            shape.style.pointerEvents = 'auto';
+            
+            // 테두리 도형인 경우 - contentEditable 관련 코드 제거
+            if (isOutline) {
+                shape.style.backgroundColor = 'transparent';
+                shape.style.border = `2px solid ${color}`;
+                shape.style.boxSizing = 'border-box';
+            } else {
+                shape.style.backgroundColor = color;
+            }
+
+            switch(type) {
+                case 'circle':
+                    shape.style.borderRadius = '50%';
+                    break;
+                case 'rounded-rectangle':
+                    shape.style.borderRadius = '15px';
+                    break;
+            }
+
+            // 리사이즈 핸들 추가
+            addResizeHandles(shape);
+            
+            document.getElementById('designLayer').appendChild(shape);
+            makeElementDraggable(shape);
+        }
+
+        // 드래그 기능 구현
+        function makeElementDraggable(element) {
+            // 초기에는 리사이즈 핸들 숨기기
+            const handles = element.querySelectorAll('.resize-handle');
+            handles.forEach(handle => handle.style.display = 'none');
+            
+            let isDragging = false;
+
+            element.addEventListener('mousedown', (e) => {
+                if (e.target === element) {
+                    isDragging = true;
+                    currentX = e.clientX - element.offsetLeft;
+                    currentY = e.clientY - element.offsetTop;
+                }
+            });
+
+            element.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectElement(element);
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    e.preventDefault();
+                    element.style.left = `${e.clientX - currentX}px`;
+                    element.style.top = `${e.clientY - currentY}px`;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+        }
+
+        // 캔버스 영역 클릭 시 선택 해제
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'canvasArea' || e.target.id === 'designLayer') {
+                if (selectedElement) {
+                    selectedElement.style.outline = 'none';
+                    selectedElement = null;
+                    const editPanel = document.getElementById('editPanel');
+                    if (editPanel) {
+                        editPanel.classList.remove('show');
+                    }
+                }
+            }
+        });
+
+        // 새로운 함수들 추���
+        function toggleTextStyle(style) {
+            if (!selectedElement) return;
+            
+            switch(style) {
+                case 'bold':
+                    if (selectedElement.style.fontWeight === 'bold') {
+                        selectedElement.style.fontWeight = 'normal';
+                        document.querySelector('button[onclick="toggleTextStyle(\'bold\')"]').classList.remove('active');
+                    } else {
+                        selectedElement.style.fontWeight = 'bold';
+                        document.querySelector('button[onclick="toggleTextStyle(\'bold\')"]').classList.add('active');
+                    }
+                    break;
+                case 'italic':
+                    if (selectedElement.style.fontStyle === 'italic') {
+                        selectedElement.style.fontStyle = 'normal';
+                        document.querySelector('button[onclick="toggleTextStyle(\'italic\')"]').classList.remove('active');
+                    } else {
+                        selectedElement.style.fontStyle = 'italic';
+                        document.querySelector('button[onclick="toggleTextStyle(\'italic\')"]').classList.add('active');
+                    }
+                    break;
+                case 'underline':
+                    if (selectedElement.style.textDecoration === 'underline') {
+                        selectedElement.style.textDecoration = 'none';
+                        document.querySelector('button[onclick="toggleTextStyle(\'underline\')"]').classList.remove('active');
+                    } else {
+                        selectedElement.style.textDecoration = 'underline';
+                        document.querySelector('button[onclick="toggleTextStyle(\'underline\')"]').classList.add('active');
+                    }
+                    break;
+            }
+        }
+
+        // 리사이즈 핸들 추가 함수
+        function addResizeHandles(element) {
+            const positions = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+            
+            positions.forEach(pos => {
+                const handle = document.createElement('div');
+                handle.className = `resize-handle ${pos}`;
+                handle.style.display = 'none';  // 초기에는 핸들 숨김
+                element.appendChild(handle);
+                
+                handle.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    startResize(element, pos, e);
+                });
+            });
+        }
+
+        // 리사이즈 관련 변수
+        let isResizing = false;
+        let currentHandle = '';
+        let startWidth = 0;
+        let startHeight = 0;
+        let startX = 0;
+        let startY = 0;
+
+        // 리사이즈 시작 함수
+        function startResize(element, position, e) {
+            isResizing = true;
+            currentHandle = position;
+            
+            const rect = element.getBoundingClientRect();
+            startWidth = rect.width;
+            startHeight = rect.height;
+            startX = e.clientX;
+            startY = e.clientY;
+            const originalLeft = element.offsetLeft;
+            const originalTop = element.offsetTop;
+
+            function resize(e) {
+                if (!isResizing) return;
+                e.preventDefault();
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                let newWidth = startWidth;
+                let newHeight = startHeight;
+                let newLeft = originalLeft;
+                let newTop = originalTop;
+
+                // 비율 유지를 위한 계산
+                const aspectRatio = startWidth / startHeight;
+
+                switch(currentHandle) {
+                    case 'e':  // 오른쪽
+                        newWidth = Math.max(50, startWidth + deltaX);
+                        newHeight = newWidth / aspectRatio;
+                        break;
+                    case 'w':  // 왼쪽
+                        newWidth = Math.max(50, startWidth - deltaX);
+                        newHeight = newWidth / aspectRatio;
+                        newLeft = originalLeft + (startWidth - newWidth);
+                        break;
+                    case 'n':  // 위
+                        newHeight = Math.max(50, startHeight - deltaY);
+                        newWidth = newHeight * aspectRatio;
+                        newTop = originalTop + (startHeight - newHeight);
+                        break;
+                    case 's':  // 아래
+                        newHeight = Math.max(50, startHeight + deltaY);
+                        newWidth = newHeight * aspectRatio;
+                        break;
+                    case 'se':  // 오른쪽 아래
+                        newWidth = Math.max(50, startWidth + deltaX);
+                        newHeight = Math.max(50, startHeight + deltaY);
+                        break;
+                    case 'sw':  // 왼쪽 아래
+                        newWidth = Math.max(50, startWidth - deltaX);
+                        newHeight = Math.max(50, startHeight + deltaY);
+                        newLeft = originalLeft + (startWidth - newWidth);
+                        break;
+                    case 'ne':  // 오른쪽 위
+                        newWidth = Math.max(50, startWidth + deltaX);
+                        newHeight = Math.max(50, startHeight - deltaY);
+                        newTop = originalTop + (startHeight - newHeight);
+                        break;
+                    case 'nw':  // 왼쪽 위
+                        newWidth = Math.max(50, startWidth - deltaX);
+                        newHeight = Math.max(50, startHeight - deltaY);
+                        newLeft = originalLeft + (startWidth - newWidth);
+                        newTop = originalTop + (startHeight - newHeight);
+                        break;
+                }
+
+                // 크기 및 위치 적용
+                element.style.width = `${newWidth}px`;
+                element.style.height = `${newHeight}px`;
+                element.style.left = `${newLeft}px`;
+                element.style.top = `${newTop}px`;
+            }
+
+            function stopResize() {
+                isResizing = false;
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+            }
+
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', stopResize);
+        }
+
+        function createDesignElement(type) {
+            const element = document.createElement('div');
+            element.className = 'design-element';
+            // contenteditable 속성 제거
+            
+            // 크기 조절 ��들만 추가
+            addResizeHandles(element);
+            
+            return element;
+        }
+
+        // AI 광고 문구 생성 함수 수정
+        async function generateAdCopy() {
+            const prompt = document.getElementById('promptInput').value;
+            const tone = document.getElementById('copyToneSelect').value;
+            const generatedCopies = document.getElementById('generatedCopies');
+            const copyResults = document.querySelector('.copy-results');
+            
+            if (!prompt) {
+                alert('제품/서비스 특징을 입력해주세요.');
+                return;
+            }
+            
+            // 로딩 표시
+            generatedCopies.style.display = 'block';
+            copyResults.innerHTML = `
+                <div class="text-center py-3">
+                    <div class="loading-spinner"></div>
+                    <span>광고 문구 생성 중...</span>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/generate_ad_copy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        tone: tone
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API 요청 실패');
+                }
+
+                const data = await response.json();
+                
+                // 결과 표시
+                copyResults.innerHTML = data.copies.map(copy => `
+                    <div class="copy-item" onclick="useAdCopy(\`${copy}\`)">
+                        ${copy}
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                copyResults.innerHTML = `
+                    <div class="alert alert-danger">
+                        문구 생성 중 오류가 발생했습니다. 다시 시도해주��요.
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        }
+
+        // 생성된 광고 문구를 텍스트 입력창에 적용하는 함수 수정
+        function useAdCopy(copy) {
+            // 먼저 텍스트 도구 섹션이 있는지 확인
+            let textSection = document.querySelector('.section-container:nth-child(2)');
+            
+            if (!textSection) {
+                // 텍스트 도구 섹션이 없으면 생성
+                handleFeedback('like');
+                
+                // UI가 생성될 시간을 기다린 후 텍스트 입력
+                setTimeout(() => {
+                    const textInput = document.getElementById('textInput');
+                    if (textInput) {
+                        textInput.value = copy;
+                        // 스크롤 이동
+                        document.querySelector('.section-container:nth-child(2)').scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }, 500); // 시간을 500ms로 늘림
+            } else {
+                // 이미 텍스트 도구 섹션이 있으면 바로 값 설정
+                const textInput = document.getElementById('textInput');
+                if (textInput) {
+                    textInput.value = copy;
+                    textSection.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }
+        }
+
+        // 저장 모달 열기 함수
+        function openSaveModal() {
+            const modal = new bootstrap.Modal(document.getElementById('saveModal'));
+            modal.show();
+        }
+
+        // 광고 저장 함수
+        async function saveAd() {
+            const title = document.getElementById('adTitle').value.trim();
+            if (!title) {
+                alert('광고 제목을 입력해주세요.');
                 return;
             }
 
-            // 기존 generateAd 함수 로직 유지
-            fetch('/generate_ad', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ user_input: userInput })
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('adText').innerText = data.ad_text;
-                const adImage = document.getElementById('adImage');
-                adImage.src = data.image_url;
-                adImage.style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('광고 생성에 실패했습니다.');
-            });
+            try {
+                // 캔버스 영역을 이미지로 변환
+                const canvasArea = document.querySelector('.canvas-area');
+                const canvas = await html2canvas(canvasArea);
+                const imageData = canvas.toDataURL('image/png');
+
+                // 서버에 저장 요청
+                const response = await fetch('/save_ad', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        imageData: imageData
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('저장 실패');
+                }
+
+                const data = await response.json();
+                
+                // 다운로드 링크 생성 및 클릭
+                const link = document.createElement('a');
+                link.href = data.image_url;
+                link.download = `${title}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // 모달 닫기
+                bootstrap.Modal.getInstance(document.getElementById('saveModal')).hide();
+                
+                alert('광고가 성공적으로 저장되었습니다!');
+                
+            } catch (error) {
+                console.error('Error saving ad:', error);
+                alert('광고 저장 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 수정 모달 닫기 함수 추가
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('feedbackContainer').style.display = 'flex';
         }
     </script>
+
+    <!-- 저장 버달 추가 -->
+    <div class="modal fade" id="saveModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">광고 저장하기</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="adTitle" class="form-label">광고 제목</label>
+                        <input type="text" class="form-control" id="adTitle" placeholder="광고 제목을 입력하세요">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAd()">저장하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
